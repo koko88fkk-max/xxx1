@@ -494,15 +494,16 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (keyId: string) => void,
                     </div>
                     <h4 className="font-bold text-xl mb-3 text-white">رتبة ديسكورد</h4>
                     <p className="text-sm text-zinc-400 mb-8 leading-relaxed">احصل على رتبة <span className="text-zinc-200 font-mono bg-white/5 px-1 rounded">Customer</span> في سيرفرنا للوصول للدعم.</p>
-                    <motion.a 
+                    <motion.button 
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      href={DISCORD_OAUTH_URL} 
+                      onClick={() => window.location.href = DISCORD_OAUTH_URL}
+                      onContextMenu={(e) => e.preventDefault()}
                       className="mt-auto w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md border-t border-white/20"
                     >
                       <MessageCircle className="w-5 h-5" />
                       ربط الحساب وإستلام الرتبة
-                    </motion.a>
+                    </motion.button>
                   </motion.div>
                 </div>
                 
