@@ -3,14 +3,45 @@ import cors from 'cors';
 import axios from 'axios';
 
 const app = express();
-app.use(cors());
+
+// 🔒 Security: Only allow requests from your Vercel website
+app.use(cors({
+  origin: ['https://t3n-2a2i.vercel.app'],
+  methods: ['POST'],
+}));
 app.use(express.json());
 
-const BOT_TOKEN = '';
-const GUILD_ID = '1396959491786018826';
-const ROLE_ID = '1397221350095192074';
+// 🔒 Security: Read secrets from environment variables (not hardcoded!)
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const GUILD_ID = process.env.GUILD_ID || '1396959491786018826';
+const ROLE_ID = process.env.ROLE_ID || '1397221350095192074';
 
-app.post('/api/assign-role', async (req, res) => {
+// 🔒 Security: Simple rate limiting (1 request per IP every 30 seconds)
+const rateLimitMap = new Map();
+function rateLimit(req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.ip;
+  const now = Date.now();
+  const lastRequest = rateLimitMap.get(ip);
+  if (lastRequest && now - lastRequest < 30000) {
+    return res.status(429).json({ error: 'Too many requests. Please wait 30 seconds.' });
+  }
+  rateLimitMap.set(ip, now);
+  next();
+}
+
+// Clean up old entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, time] of rateLimitMap) {
+    if (now - time > 60000) rateLimitMap.delete(ip);
+  }
+}, 300000);
+
+app.post('/api/assign-role', rateLimit, async (req, res) => {
+  if (!BOT_TOKEN) {
+    return res.status(500).json({ error: 'Server misconfigured: missing BOT_TOKEN' });
+  }
+
   const { discordId, accessToken } = req.body;
   if (!discordId || !accessToken) {
     return res.status(400).json({ error: 'Missing discordId or accessToken' });
