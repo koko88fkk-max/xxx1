@@ -8,7 +8,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 const LOGO_URL = "/logo.png";
 const STORE_URL = "https://salla.sa/t3nn";
 const DISCORD_URL = "https://discord.gg/tjMWEccj3J";
-const DISCORD_OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=1462976673007013908&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=token&scope=identify%20guilds.join";
+const DISCORD_OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=1462976673007013908&redirect_uri=https%3A%2F%2Ft3n-2a2i.vercel.app%2F&response_type=token&scope=identify%20guilds.join";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -1960,7 +1960,7 @@ export default function App() {
             const discordUser = await discordRes.json();
             
             if (discordUser && discordUser.id) {
-              const backendRes = await fetch('http://localhost:3001/api/assign-role', {
+              const backendRes = await fetch('https://t3n.onrender.com/api/assign-role', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken })
