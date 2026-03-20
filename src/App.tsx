@@ -473,16 +473,23 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (keyId: string) => void,
                     </div>
                     <h4 className="font-bold text-xl mb-3 text-white">ملفات الطلب</h4>
                     <p className="text-sm text-zinc-400 mb-8 leading-relaxed">ملف مضغوط (RAR) يحتوي على طلبك مع شرح الاستخدام والترتيب.</p>
-                    <motion.a 
-                      href="/discord.gg.t3n.rar"
-                      download="discord.gg.t3n.rar"
+                    <motion.button 
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '/discord.gg.t3n.rar';
+                        link.download = 'discord.gg.t3n.rar';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="mt-auto w-full bg-white text-black hover:bg-zinc-200 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
                     >
                       <Download className="w-5 h-5" />
                       تحميل الملف
-                    </motion.a>
+                    </motion.button>
                   </motion.div>
 
                   <motion.div 
