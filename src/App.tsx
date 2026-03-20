@@ -2379,13 +2379,30 @@ export default function App() {
 
   // Sync auth and handle Discord role assignment once verified
   useEffect(() => {
+    // Check local device ban first
+    const localBan = localStorage.getItem('t3n_device_banned');
+    if (localBan) {
+      setIsBanned(true);
+      setBanReason(localStorage.getItem('t3n_ban_reason') || 'تم حظر جهازك لانتهاك شروط الاستخدام.');
+      setAuthLoading(false);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+
+      // If locally banned, prevent any auth actions
+      if (localStorage.getItem('t3n_device_banned')) {
+        setAuthLoading(false);
+        return;
+      }
+
       if (currentUser) {
         const banCheck = await checkBanned(currentUser.uid);
         if (banCheck.banned) {
           setIsBanned(true);
           setBanReason(banCheck.reason || null);
+          localStorage.setItem('t3n_device_banned', 'true');
+          if (banCheck.reason) localStorage.setItem('t3n_ban_reason', banCheck.reason);
           setAuthLoading(false);
           return;
         } else {
@@ -2446,9 +2463,9 @@ export default function App() {
           <p className="text-zinc-300 text-lg mb-8 leading-relaxed">
             {banReason || 'لقد تم حظرك من استخدام خدمات الموقع لمخالفتك الشروط والقوانين.'}
           </p>
-          <button onClick={logout} className="w-full py-4 bg-white/5 hover:bg-white/10 active:bg-white/5 border border-white/10 rounded-xl text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2">
-            <LogOut className="w-5 h-5" /> تسجيل الخروج
-          </button>
+          <div className="w-full py-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 font-bold shadow-lg flex items-center justify-center gap-2">
+            تم تقييد الوصول نهائياً
+          </div>
         </motion.div>
       </div>
     );
