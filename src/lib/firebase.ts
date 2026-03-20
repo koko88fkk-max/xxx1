@@ -33,7 +33,7 @@ export async function loginWithGoogle() {
       await setDoc(userRef, {
         email: user.email,
         isVIP: false,
-        verifiedOrder: null,
+        verifiedKey: null,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString()
       });
@@ -59,7 +59,6 @@ export async function logout() {
 export async function checkIsAdmin(email: string | null): Promise<boolean> {
   if (!email) return false;
   if (email === MAIN_ADMIN_EMAIL) return true;
-  // Check if email is in admins collection
   const adminRef = doc(db, "admins", email);
   const adminSnap = await getDoc(adminRef);
   return adminSnap.exists();
@@ -85,41 +84,247 @@ export async function checkUserVIP(uid: string) {
   const userRef = doc(db, "users", uid);
   const docSnap = await getDoc(userRef);
   if (docSnap.exists() && docSnap.data().isVIP === true) {
+    // Also check if the key they used is still valid (not expired)
+    const keyId = docSnap.data().verifiedKey;
+    if (keyId) {
+      const keyRef = doc(db, "keys", keyId);
+      const keySnap = await getDoc(keyRef);
+      if (keySnap.exists()) {
+        const keyData = keySnap.data();
+        // Check expiration
+        if (keyData.activatedAt) {
+          const activatedTime = new Date(keyData.activatedAt).getTime();
+          const now = Date.now();
+          const hours24 = 24 * 60 * 60 * 1000;
+          if (now - activatedTime > hours24) {
+            // Key expired - remove VIP
+            await setDoc(userRef, { isVIP: false }, { merge: true });
+            await setDoc(keyRef, { status: 'expired' }, { merge: true });
+            return false;
+          }
+        }
+        // Check if key is banned or frozen
+        if (keyData.status === 'banned' || keyData.status === 'frozen') {
+          await setDoc(userRef, { isVIP: false }, { merge: true });
+          return false;
+        }
+      }
+    }
     return true;
   }
   return false;
 }
 
-// Check if order number was already used by someone else
-export async function isOrderUsed(orderId: string, currentUid: string): Promise<{ used: boolean; byCurrentUser: boolean }> {
-  const orderRef = doc(db, "usedOrders", orderId);
-  const docSnap = await getDoc(orderRef);
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    if (data.usedBy === currentUid) {
-      return { used: true, byCurrentUser: true };
-    }
-    return { used: true, byCurrentUser: false };
+// ==========================================
+// 🔑 KEY SYSTEM
+// ==========================================
+
+// Generate a random key segment (6 chars: A-Z, a-z, 0-9)
+function generateSegment(length: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  for (let i = 0; i < length; i++) {
+    result += chars[array[i] % chars.length];
   }
-  return { used: false, byCurrentUser: false };
+  return result;
 }
 
-// Mark user as VIP and lock the order number
-export async function markUserAsVIP(uid: string, orderId: string, email: string) {
+// 🔑 Generate a unique key: T3N-XXXXXX-XXXXXX
+export async function generateKey(): Promise<string> {
+  let key = '';
+  let exists = true;
+  // Keep generating until we get a unique key
+  while (exists) {
+    key = `T3N-${generateSegment(6)}-${generateSegment(6)}`;
+    const keyRef = doc(db, "keys", key);
+    const keySnap = await getDoc(keyRef);
+    exists = keySnap.exists();
+  }
+  // Save the key
+  const keyRef = doc(db, "keys", key);
+  await setDoc(keyRef, {
+    status: 'unused', // unused | active | expired | banned | frozen
+    createdAt: new Date().toISOString(),
+    activatedAt: null,
+    usedByEmail: null,
+    usedByUid: null,
+    expiresAt: null
+  });
+  return key;
+}
+
+// 🔑 Validate and activate a key
+export async function activateKey(keyId: string, uid: string, email: string): Promise<{ success: boolean; error?: string }> {
+  const cleaned = keyId.trim().toUpperCase().replace(/\s/g, '');
+  
+  // Validate format: T3N-XXXXXX-XXXXXX
+  if (!/^T3N-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}$/i.test(keyId.trim())) {
+    return { success: false, error: 'صيغة المفتاح غير صحيحة' };
+  }
+
+  const keyRef = doc(db, "keys", keyId.trim());
+  const keySnap = await getDoc(keyRef);
+
+  if (!keySnap.exists()) {
+    return { success: false, error: 'المفتاح غير موجود' };
+  }
+
+  const keyData = keySnap.data();
+
+  if (keyData.status === 'banned') {
+    return { success: false, error: 'هذا المفتاح محظور' };
+  }
+
+  if (keyData.status === 'frozen') {
+    return { success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' };
+  }
+
+  if (keyData.status === 'expired') {
+    return { success: false, error: 'هذا المفتاح منتهي الصلاحية' };
+  }
+
+  if (keyData.status === 'active') {
+    // Check if still within 24 hours
+    if (keyData.activatedAt) {
+      const activatedTime = new Date(keyData.activatedAt).getTime();
+      const now = Date.now();
+      const hours24 = 24 * 60 * 60 * 1000;
+      if (now - activatedTime > hours24) {
+        await setDoc(keyRef, { status: 'expired' }, { merge: true });
+        return { success: false, error: 'هذا المفتاح منتهي الصلاحية' };
+      }
+    }
+    // Already used by someone
+    if (keyData.usedByUid && keyData.usedByUid !== uid) {
+      return { success: false, error: 'هذا المفتاح مستخدم من شخص آخر' };
+    }
+    // Same user re-entering - allow
+    if (keyData.usedByUid === uid) {
+      return { success: true };
+    }
+  }
+
+  // Activate the key
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  
+  await setDoc(keyRef, {
+    status: 'active',
+    activatedAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    usedByEmail: email,
+    usedByUid: uid
+  }, { merge: true });
+
+  // Mark user as VIP
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, {
     isVIP: true,
-    verifiedOrder: orderId,
+    verifiedKey: keyId.trim(),
     email: email,
-    verifiedAt: new Date().toISOString()
+    verifiedAt: now.toISOString()
   }, { merge: true });
 
-  const orderRef = doc(db, "usedOrders", orderId);
-  await setDoc(orderRef, {
-    usedBy: uid,
-    email: email,
-    usedAt: new Date().toISOString()
+  return { success: true };
+}
+
+// 🔑 Delete a key
+export async function deleteKey(keyId: string) {
+  const keyRef = doc(db, "keys", keyId);
+  await deleteDoc(keyRef);
+}
+
+// 🔑 Ban a key
+export async function banKey(keyId: string) {
+  const keyRef = doc(db, "keys", keyId);
+  const keySnap = await getDoc(keyRef);
+  if (keySnap.exists()) {
+    const keyData = keySnap.data();
+    await setDoc(keyRef, { status: 'banned' }, { merge: true });
+    // If someone is using it, remove their VIP
+    if (keyData.usedByUid) {
+      const userRef = doc(db, "users", keyData.usedByUid);
+      await setDoc(userRef, { isVIP: false }, { merge: true });
+    }
+  }
+}
+
+// 🔑 Unban a key (sets back to unused or active based on timing)
+export async function unbanKey(keyId: string) {
+  const keyRef = doc(db, "keys", keyId);
+  const keySnap = await getDoc(keyRef);
+  if (keySnap.exists()) {
+    const keyData = keySnap.data();
+    let newStatus = 'unused';
+    if (keyData.activatedAt) {
+      const activatedTime = new Date(keyData.activatedAt).getTime();
+      const now = Date.now();
+      const hours24 = 24 * 60 * 60 * 1000;
+      if (now - activatedTime > hours24) {
+        newStatus = 'expired';
+      } else {
+        newStatus = 'active';
+        // Restore VIP if still active
+        if (keyData.usedByUid) {
+          const userRef = doc(db, "users", keyData.usedByUid);
+          await setDoc(userRef, { isVIP: true }, { merge: true });
+        }
+      }
+    }
+    await setDoc(keyRef, { status: newStatus }, { merge: true });
+  }
+}
+
+// 🔑 Freeze a key temporarily
+export async function freezeKey(keyId: string) {
+  const keyRef = doc(db, "keys", keyId);
+  const keySnap = await getDoc(keyRef);
+  if (keySnap.exists()) {
+    const keyData = keySnap.data();
+    await setDoc(keyRef, { status: 'frozen', previousStatus: keyData.status }, { merge: true });
+    // Remove VIP if someone is using the key
+    if (keyData.usedByUid) {
+      const userRef = doc(db, "users", keyData.usedByUid);
+      await setDoc(userRef, { isVIP: false }, { merge: true });
+    }
+  }
+}
+
+// 🔑 Unfreeze a key
+export async function unfreezeKey(keyId: string) {
+  const keyRef = doc(db, "keys", keyId);
+  const keySnap = await getDoc(keyRef);
+  if (keySnap.exists()) {
+    const keyData = keySnap.data();
+    let newStatus = keyData.previousStatus || 'unused';
+    // Check if expired
+    if (keyData.activatedAt) {
+      const activatedTime = new Date(keyData.activatedAt).getTime();
+      const now = Date.now();
+      const hours24 = 24 * 60 * 60 * 1000;
+      if (now - activatedTime > hours24) {
+        newStatus = 'expired';
+      } else if (newStatus === 'active' && keyData.usedByUid) {
+        // Restore VIP
+        const userRef = doc(db, "users", keyData.usedByUid);
+        await setDoc(userRef, { isVIP: true }, { merge: true });
+      }
+    }
+    await setDoc(keyRef, { status: newStatus, previousStatus: null }, { merge: true });
+  }
+}
+
+// 🔑 Get all keys for admin
+export async function getAllKeys() {
+  const keysSnap = await getDocs(collection(db, "keys"));
+  const keys: any[] = [];
+  keysSnap.forEach((d) => {
+    const data = d.data();
+    keys.push({ id: d.id, ...data });
   });
+  return keys.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 }
 
 // ==========================================
@@ -134,7 +339,6 @@ export async function banUser(uid: string, email: string, reason: string) {
     reason: reason,
     bannedAt: new Date().toISOString()
   });
-  // Also remove VIP status
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, { isVIP: false, banned: true }, { merge: true });
 }
@@ -147,23 +351,16 @@ export async function unbanUser(uid: string) {
   await setDoc(userRef, { banned: false }, { merge: true });
 }
 
-// ❌ Remove VIP from user (keep their account)
+// ❌ Remove VIP from user
 export async function removeVIP(uid: string) {
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, { isVIP: false }, { merge: true });
 }
 
 // 🗑️ Delete user data completely
-export async function deleteUserData(uid: string, orderId?: string) {
-  // Delete user document
+export async function deleteUserData(uid: string, keyId?: string) {
   const userRef = doc(db, "users", uid);
   await deleteDoc(userRef);
-  // Free up the order number if exists
-  if (orderId) {
-    const orderRef = doc(db, "usedOrders", orderId);
-    await deleteDoc(orderRef);
-  }
-  // Also remove from banned list if exists
   const banRef = doc(db, "bannedUsers", uid);
   await deleteDoc(banRef);
 }
@@ -179,7 +376,7 @@ export async function addAdminUser(email: string) {
 
 // 🗑️ Remove an admin
 export async function removeAdminUser(email: string) {
-  if (email === MAIN_ADMIN_EMAIL) return; // Can't remove main admin!
+  if (email === MAIN_ADMIN_EMAIL) return;
   const adminRef = doc(db, "admins", email);
   await deleteDoc(adminRef);
 }
@@ -196,11 +393,11 @@ export async function getAdminStats() {
     if (data.isVIP) vipCount++;
   });
 
-  // Get all used orders
-  const ordersSnap = await getDocs(collection(db, "usedOrders"));
-  const orders: any[] = [];
-  ordersSnap.forEach((d) => {
-    orders.push({ id: d.id, ...d.data() });
+  // Get all keys
+  const keysSnap = await getDocs(collection(db, "keys"));
+  const keys: any[] = [];
+  keysSnap.forEach((d) => {
+    keys.push({ id: d.id, ...d.data() });
   });
 
   // Get banned users
@@ -220,10 +417,10 @@ export async function getAdminStats() {
   return {
     totalUsers: users.length,
     vipUsers: vipCount,
-    totalOrders: orders.length,
+    totalKeys: keys.length,
     bannedCount: banned.length,
-    users: users.sort((a, b) => (b.verifiedAt || '').localeCompare(a.verifiedAt || '')),
-    orders: orders.sort((a, b) => (b.usedAt || '').localeCompare(a.usedAt || '')),
+    users: users.sort((a, b) => (b.verifiedAt || b.lastLoginAt || '').localeCompare(a.verifiedAt || a.lastLoginAt || '')),
+    keys: keys.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')),
     banned,
     admins,
   };
