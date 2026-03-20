@@ -2644,9 +2644,11 @@ export default function App() {
   useEffect(() => {
     const hash = window.location.hash;
     if (hash && hash.includes("access_token")) {
-      const tokenSrc = new URLSearchParams(hash.substring(1)).get('access_token');
+      const params = new URLSearchParams(hash.substring(1));
+      const tokenSrc = params.get('access_token');
       if (tokenSrc) {
         localStorage.setItem('discord_token_pending', tokenSrc);
+        // Clean the URL hash immediately
         window.history.replaceState(null, '', window.location.pathname);
       }
     }
@@ -2691,33 +2693,63 @@ export default function App() {
         const isAdm = await checkIsAdmin(currentUser.email);
         setIsAdminUser(isAdm);
 
-        // Process pending Discord OAuth token if they are VIP
+        // Process pending Discord OAuth token
         const pendingToken = localStorage.getItem('discord_token_pending');
-        if (pendingToken && isVIP) {
-          try {
-            const discordRes = await fetch('https://discord.com/api/users/@me', {
-              headers: { Authorization: `Bearer ${pendingToken}` }
-            });
-            const discordUser = await discordRes.json();
-            
-            if (discordUser && discordUser.id) {
-              const backendRes = await fetch('https://t3n.onrender.com/api/assign-role', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken })
+        if (pendingToken) {
+          if (!isVIP) {
+            // User has a token but is not VIP yet - keep the token for later
+            // Don't remove it - they might activate a key soon
+            console.log('Discord token pending but user is not VIP yet. Token will be processed after key activation.');
+          } else {
+            // User is VIP, process the Discord token
+            try {
+              console.log('Processing Discord token...');
+              const discordRes = await fetch('https://discord.com/api/users/@me', {
+                headers: { Authorization: `Bearer ${pendingToken}` }
               });
-              const result = await backendRes.json();
-              if (result.success) {
-                setToast({ type: 'success', message: 'تم ربط حسابك بالديسكورد وإعطائك رتبة Customer بنجاح! 🎉' });
+              
+              if (!discordRes.ok) {
+                console.error('Discord API error:', discordRes.status);
+                setToast({ type: 'error', message: 'توكن الديسكورد منتهي، يرجى إعادة ربط الحساب' });
+                localStorage.removeItem('discord_token_pending');
               } else {
-                setToast({ type: 'error', message: 'حدث خطأ أثناء إعطائك الرتبة، قد تكون موجودة مسبقاً' });
+                const discordUser = await discordRes.json();
+                
+                if (discordUser && discordUser.id) {
+                  console.log('Got Discord user:', discordUser.id);
+                  const backendRes = await fetch('https://t3n.onrender.com/api/assign-role', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken })
+                  });
+                  
+                  if (backendRes.ok) {
+                    const result = await backendRes.json();
+                    if (result.success) {
+                      setToast({ type: 'success', message: 'تم ربط حسابك بالديسكورد وإعطائك رتبة Customer بنجاح! 🎉' });
+                    } else {
+                      setToast({ type: 'error', message: 'حدث خطأ أثناء إعطائك الرتبة، قد تكون موجودة مسبقاً' });
+                    }
+                  } else {
+                    const errData = await backendRes.json().catch(() => ({}));
+                    console.error('Backend error:', backendRes.status, errData);
+                    if (backendRes.status === 429) {
+                      setToast({ type: 'error', message: 'طلبات كثيرة، يرجى المحاولة بعد 30 ثانية' });
+                    } else {
+                      setToast({ type: 'error', message: 'فشل في الاتصال بسيرفر الرتب. يرجى المحاولة لاحقاً' });
+                    }
+                  }
+                } else {
+                  console.error('Invalid Discord user data');
+                  setToast({ type: 'error', message: 'فشل في جلب بيانات حساب الديسكورد' });
+                }
+                localStorage.removeItem('discord_token_pending');
               }
+            } catch (e) {
+              console.error('Error assigning rank:', e);
+              setToast({ type: 'error', message: 'فشل ربط الديسكورد، يرجى المحاولة لاحقاً' });
+              localStorage.removeItem('discord_token_pending');
             }
-          } catch (e) {
-            console.error('Error assigning rank:', e);
-            setToast({ type: 'error', message: 'فشل ربط الديسكورد، يرجى المحاولة لاحقاً' });
-          } finally {
-            localStorage.removeItem('discord_token_pending');
           }
         }
       } else {
