@@ -1442,7 +1442,7 @@ function SiteGuide({ onClose }: { onClose: () => void }) {
           className="w-full rounded-[2rem] overflow-hidden border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.6)] bg-black/60 backdrop-blur-lg"
         >
           <video controls className="w-full h-auto max-h-[70vh] aspect-[16/9] object-contain" autoPlay playsInline>
-            <source src="/video-site-guide.mp4" type="video/mp4" />
+            <source src="/guide-video.mp4" type="video/mp4" />
             متصفحك لا يدعم تشغيل الفيديو
           </video>
         </motion.div>
@@ -1917,7 +1917,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
 function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'banned' | 'admins'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'banned' | 'admins' | 'logins'>('users');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState('');
 
@@ -2053,7 +2053,10 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
               {/* Tabs */}
               <div className="flex flex-wrap gap-2 mb-6">
                 <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'users' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
-                  <span className="flex items-center gap-2"><Users className="w-4 h-4" /> المستخدمين ({stats.totalUsers})</span>
+                  <span className="flex items-center gap-2"><Users className="w-4 h-4" /> أصحاب الطلبات ({stats.users.filter((u:any) => u.verifiedOrder).length})</span>
+                </button>
+                <button onClick={() => setActiveTab('logins')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'logins' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> تسجيل الدخول ({stats.users.length})</span>
                 </button>
                 <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><Package className="w-4 h-4" /> الطلبات ({stats.totalOrders})</span>
@@ -2066,7 +2069,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                 </button>
               </div>
 
-              {/* Users Tab */}
+              {/* Users Tab (Only with orders) */}
               {activeTab === 'users' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                   <div className="overflow-x-auto">
@@ -2081,7 +2084,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {stats.users.map((u: any, i: number) => (
+                        {stats.users.filter((u:any) => u.verifiedOrder).map((u: any, i: number) => (
                           <tr key={u.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
@@ -2128,7 +2131,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                             </td>
                           </tr>
                         ))}
-                        {stats.users.length === 0 && (
+                        {stats.users.filter((u:any) => u.verifiedOrder).length === 0 && (
                           <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">لا يوجد مستخدمين بعد</td></tr>
                         )}
                       </tbody>
@@ -2136,6 +2139,71 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                   </div>
                 </motion.div>
               )}
+
+              {/* Logins Tab (All Users) */}
+              {activeTab === 'logins' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/5">
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الحالة</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">آخر دخول</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ التسجيل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.users.sort((a:any,b:any)=>(b.lastLoginAt||'').localeCompare(a.lastLoginAt||'')).map((u: any, i: number) => (
+                          <tr key={u.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-zinc-500 shrink-0" />
+                                <span className="text-white text-sm truncate max-w-[200px]">{u.email || 'غير معروف'}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {u.verifiedOrder ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><Check className="w-3 h-3"/> أضاف رقم طلب</span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-zinc-500/20 text-zinc-400 border border-zinc-500/30"><Clock className="w-3 h-3"/> مسجل فقط</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-zinc-400 text-xs">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('ar-SA') : '-'}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-zinc-400 text-xs">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '-'}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                {!u.banned ? (
+                                  <button onClick={() => handleBan(u.id, u.email)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-xs" title="حظر">
+                                    <ShieldOff className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleUnban(u.id)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all text-xs" title="فك الحظر">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button onClick={() => handleDelete(u.id, u.verifiedOrder)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all text-xs" title="حذف نهائي">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                {actionLoading === u.id && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {stats.users.length === 0 && (
+                          <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">لا يوجد تسجيلات بعد</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
 
               {/* Orders Tab */}
               {activeTab === 'orders' && (
@@ -2275,6 +2343,7 @@ export default function App() {
   const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('t3n-theme');
     return saved ? saved === 'dark' : true;
@@ -2314,6 +2383,9 @@ export default function App() {
         const isVIP = await checkUserVIP(currentUser.uid);
         setIsVerifiedCustomer(isVIP);
 
+        const isAdm = await checkIsAdmin(currentUser.email);
+        setIsAdminUser(isAdm);
+
         // Process pending Discord OAuth token if they are VIP
         const pendingToken = localStorage.getItem('discord_token_pending');
         if (pendingToken && isVIP) {
@@ -2345,6 +2417,7 @@ export default function App() {
         }
       } else {
         setIsVerifiedCustomer(false);
+        setIsAdminUser(false);
       }
       setAuthLoading(false);
     });
@@ -2412,7 +2485,7 @@ export default function App() {
       />
 
       {/* Admin Button - Only visible to admin */}
-      {user && isAdmin(user.email) && (
+      {user && isAdminUser && (
         <motion.button
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -2496,7 +2569,7 @@ export default function App() {
 
       {/* 🔒 Admin Dashboard - Only for admin */}
       <AnimatePresence>
-        {showAdmin && user && isAdmin(user.email) && <AdminDashboard onClose={() => setShowAdmin(false)} />}
+        {showAdmin && user && isAdminUser && <AdminDashboard onClose={() => setShowAdmin(false)} />}
       </AnimatePresence>
     </div>
   );

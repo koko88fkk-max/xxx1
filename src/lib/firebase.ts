@@ -23,7 +23,28 @@ export const provider = new GoogleAuthProvider();
 export async function loginWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
-    return result.user;
+    const user = result.user;
+    
+    // Save or update user login in Firestore
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+    
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        isVIP: false,
+        verifiedOrder: null,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      });
+    } else {
+      await setDoc(userRef, { 
+        email: user.email,
+        lastLoginAt: new Date().toISOString() 
+      }, { merge: true });
+    }
+    
+    return user;
   } catch (error) {
     console.error("Error signing in with Google", error);
     return null;
