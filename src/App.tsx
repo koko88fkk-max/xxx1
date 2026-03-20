@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -2344,6 +2344,8 @@ export default function App() {
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('t3n-theme');
     return saved ? saved === 'dark' : true;
@@ -2380,6 +2382,17 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        const banCheck = await checkBanned(currentUser.uid);
+        if (banCheck.banned) {
+          setIsBanned(true);
+          setBanReason(banCheck.reason || null);
+          setAuthLoading(false);
+          return;
+        } else {
+          setIsBanned(false);
+          setBanReason(null);
+        }
+
         const isVIP = await checkUserVIP(currentUser.uid);
         setIsVerifiedCustomer(isVIP);
 
@@ -2423,6 +2436,23 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [isVerifiedCustomer]);
+
+  if (isBanned) {
+    return (
+      <div className="min-h-screen bg-[#06060c] flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl backdrop-blur-md">
+          <ShieldOff className="w-20 h-20 text-red-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+          <h1 className="text-3xl font-extrabold text-white mb-3">تم حظر حسابك</h1>
+          <p className="text-zinc-300 text-lg mb-8 leading-relaxed">
+            {banReason || 'لقد تم حظرك من استخدام خدمات الموقع لمخالفتك الشروط والقوانين.'}
+          </p>
+          <button onClick={logout} className="w-full py-4 bg-white/5 hover:bg-white/10 active:bg-white/5 border border-white/10 rounded-xl text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+            <LogOut className="w-5 h-5" /> تسجيل الخروج
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#06060c] text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
