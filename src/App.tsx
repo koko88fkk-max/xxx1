@@ -2717,7 +2717,7 @@ export default function App() {
                 
                 if (discordUser && discordUser.id) {
                   console.log('Got Discord user:', discordUser.id);
-                  const backendRes = await fetch('https://t3n.onrender.com/api/assign-role', {
+                  const backendRes = await fetch('/api/assign-role', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken })
