@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed, isAdmin, getAdminStats } from './lib/firebase';
+import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus } from 'lucide-react';
+import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -1917,7 +1917,9 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
 function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'orders'>('overview');
+  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'banned' | 'admins'>('users');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [newAdminEmail, setNewAdminEmail] = useState('');
 
   const loadStats = async () => {
     setLoading(true);
@@ -1932,6 +1934,54 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
 
   useEffect(() => { loadStats(); }, []);
 
+  const handleBan = async (uid: string, email: string) => {
+    const reason = prompt('سبب الحظر:');
+    if (!reason) return;
+    if (!confirm(`هل أنت متأكد من حظر ${email}؟`)) return;
+    setActionLoading(uid);
+    await banUser(uid, email, reason);
+    await loadStats();
+    setActionLoading(null);
+  };
+
+  const handleUnban = async (uid: string) => {
+    if (!confirm('هل تريد فك الحظر عن هذا المستخدم؟')) return;
+    setActionLoading(uid);
+    await unbanUser(uid);
+    await loadStats();
+    setActionLoading(null);
+  };
+
+  const handleRemoveVIP = async (uid: string) => {
+    if (!confirm('هل تريد إزالة VIP من هذا المستخدم؟')) return;
+    setActionLoading(uid);
+    await removeVIP(uid);
+    await loadStats();
+    setActionLoading(null);
+  };
+
+  const handleDelete = async (uid: string, orderId?: string) => {
+    if (!confirm('⚠️ هل أنت متأكد من حذف هذا المستخدم نهائياً؟ لا يمكن التراجع!')) return;
+    setActionLoading(uid);
+    await deleteUserData(uid, orderId);
+    await loadStats();
+    setActionLoading(null);
+  };
+
+  const handleAddAdmin = async () => {
+    if (!newAdminEmail.includes('@')) { alert('أدخل إيميل صحيح'); return; }
+    if (!confirm(`هل تريد إضافة ${newAdminEmail} كمشرف؟`)) return;
+    await addAdminUser(newAdminEmail);
+    setNewAdminEmail('');
+    await loadStats();
+  };
+
+  const handleRemoveAdmin = async (email: string) => {
+    if (!confirm(`هل تريد إزالة ${email} من المشرفين؟`)) return;
+    await removeAdminUser(email);
+    await loadStats();
+  };
+
   return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
@@ -1940,8 +1990,8 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-xl overflow-y-auto"
     >
       <div className="min-h-screen p-4 md:p-8">
-        {/* Header */}
         <div className="max-w-6xl mx-auto">
+          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-orange-500 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.4)]">
@@ -1953,20 +2003,10 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={loadStats}
-                className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white"
-              >
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadStats} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white">
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onClose}
-                className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white"
-              >
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white">
                 <X className="w-5 h-5" />
               </motion.button>
             </div>
@@ -1979,43 +2019,54 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
           ) : stats ? (
             <>
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gradient-to-br from-blue-600/20 to-blue-800/10 border border-blue-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><Users className="w-5 h-5 text-blue-400" /></div>
-                    <span className="text-zinc-400 text-sm">إجمالي المستخدمين</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gradient-to-br from-blue-600/20 to-blue-800/10 border border-blue-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-5 h-5 text-blue-400" />
+                    <span className="text-zinc-400 text-xs">المستخدمين</span>
                   </div>
-                  <p className="text-4xl font-bold text-white">{stats.totalUsers}</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
                 </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-yellow-600/20 to-amber-800/10 border border-yellow-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center"><Star className="w-5 h-5 text-yellow-400" /></div>
-                    <span className="text-zinc-400 text-sm">عملاء VIP</span>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-yellow-600/20 to-amber-800/10 border border-yellow-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="w-5 h-5 text-yellow-400" />
+                    <span className="text-zinc-400 text-xs">VIP</span>
                   </div>
-                  <p className="text-4xl font-bold text-white">{stats.vipUsers}</p>
+                  <p className="text-3xl font-bold text-white">{stats.vipUsers}</p>
                 </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gradient-to-br from-emerald-600/20 to-green-800/10 border border-emerald-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center"><Package className="w-5 h-5 text-emerald-400" /></div>
-                    <span className="text-zinc-400 text-sm">طلبات مستخدمة</span>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gradient-to-br from-emerald-600/20 to-green-800/10 border border-emerald-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-5 h-5 text-emerald-400" />
+                    <span className="text-zinc-400 text-xs">الطلبات</span>
                   </div>
-                  <p className="text-4xl font-bold text-white">{stats.totalOrders}</p>
+                  <p className="text-3xl font-bold text-white">{stats.totalOrders}</p>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-gradient-to-br from-red-600/20 to-red-800/10 border border-red-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldOff className="w-5 h-5 text-red-400" />
+                    <span className="text-zinc-400 text-xs">محظورين</span>
+                  </div>
+                  <p className="text-3xl font-bold text-white">{stats.bannedCount}</p>
                 </motion.div>
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-2 mb-6">
-                <button onClick={() => setActiveTab('users')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'users' ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'users' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><Users className="w-4 h-4" /> المستخدمين ({stats.totalUsers})</span>
                 </button>
-                <button onClick={() => setActiveTab('orders')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><Package className="w-4 h-4" /> الطلبات ({stats.totalOrders})</span>
+                </button>
+                <button onClick={() => setActiveTab('banned')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'banned' ? 'bg-red-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><ShieldOff className="w-4 h-4" /> المحظورين ({stats.bannedCount})</span>
+                </button>
+                <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'admins' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><Crown className="w-4 h-4" /> المشرفين ({stats.admins?.length || 0})</span>
                 </button>
               </div>
 
-              {/* Users Table */}
+              {/* Users Tab */}
               {activeTab === 'users' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                   <div className="overflow-x-auto">
@@ -2025,7 +2076,8 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">رقم الطلب</th>
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الحالة</th>
-                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ التسجيل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">التاريخ</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">إجراءات</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2033,35 +2085,51 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                           <tr key={u.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
-                                <Mail className="w-4 h-4 text-zinc-500" />
-                                <span className="text-white text-sm">{u.email || 'غير معروف'}</span>
+                                <Mail className="w-4 h-4 text-zinc-500 shrink-0" />
+                                <span className="text-white text-sm truncate max-w-[200px]">{u.email || 'غير معروف'}</span>
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <Hash className="w-4 h-4 text-zinc-500" />
-                                <span className="text-zinc-300 text-sm font-mono">{u.verifiedOrder || '-'}</span>
-                              </div>
+                              <span className="text-zinc-300 text-sm font-mono">{u.verifiedOrder || '-'}</span>
                             </td>
                             <td className="px-4 py-3">
-                              {u.isVIP ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                  <Star className="w-3 h-3" /> VIP
-                                </span>
+                              {u.banned ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">🚫 محظور</span>
+                              ) : u.isVIP ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"><Star className="w-3 h-3" /> VIP</span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-500/20 text-zinc-400 border border-zinc-500/30">عادي</span>
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-zinc-500/20 text-zinc-400 border border-zinc-500/30">عادي</span>
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-zinc-500" />
-                                <span className="text-zinc-400 text-xs">{u.verifiedAt ? new Date(u.verifiedAt).toLocaleString('ar-SA') : '-'}</span>
+                              <span className="text-zinc-400 text-xs">{u.verifiedAt ? new Date(u.verifiedAt).toLocaleDateString('ar-SA') : '-'}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                {u.isVIP && !u.banned && (
+                                  <button onClick={() => handleRemoveVIP(u.id)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-all text-xs" title="إزالة VIP">
+                                    <UserX className="w-4 h-4" />
+                                  </button>
+                                )}
+                                {!u.banned ? (
+                                  <button onClick={() => handleBan(u.id, u.email)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-xs" title="حظر">
+                                    <ShieldOff className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleUnban(u.id)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all text-xs" title="فك الحظر">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                                <button onClick={() => handleDelete(u.id, u.verifiedOrder)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all text-xs" title="حذف نهائي">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                {actionLoading === u.id && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                               </div>
                             </td>
                           </tr>
                         ))}
                         {stats.users.length === 0 && (
-                          <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">لا يوجد مستخدمين بعد</td></tr>
+                          <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">لا يوجد مستخدمين بعد</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -2069,7 +2137,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                 </motion.div>
               )}
 
-              {/* Orders Table */}
+              {/* Orders Tab */}
               {activeTab === 'orders' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                   <div className="overflow-x-auto">
@@ -2084,20 +2152,104 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                       <tbody>
                         {stats.orders.map((o: any, i: number) => (
                           <tr key={o.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
-                            <td className="px-4 py-3">
-                              <span className="text-white text-sm font-mono font-bold">{o.id}</span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="text-zinc-300 text-sm">{o.email || 'غير معروف'}</span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="text-zinc-400 text-xs">{o.usedAt ? new Date(o.usedAt).toLocaleString('ar-SA') : '-'}</span>
-                            </td>
+                            <td className="px-4 py-3"><span className="text-white text-sm font-mono font-bold">{o.id}</span></td>
+                            <td className="px-4 py-3"><span className="text-zinc-300 text-sm">{o.email || 'غير معروف'}</span></td>
+                            <td className="px-4 py-3"><span className="text-zinc-400 text-xs">{o.usedAt ? new Date(o.usedAt).toLocaleString('ar-SA') : '-'}</span></td>
                           </tr>
                         ))}
                         {stats.orders.length === 0 && (
-                          <tr><td colSpan={3} className="px-4 py-8 text-center text-zinc-500">لا يوجد طلبات مستخدمة بعد</td></tr>
+                          <tr><td colSpan={3} className="px-4 py-8 text-center text-zinc-500">لا يوجد طلبات</td></tr>
                         )}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Banned Tab */}
+              {activeTab === 'banned' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/5">
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">سبب الحظر</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ الحظر</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.banned.map((b: any, i: number) => (
+                          <tr key={b.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <td className="px-4 py-3"><span className="text-white text-sm">{b.email}</span></td>
+                            <td className="px-4 py-3"><span className="text-red-400 text-sm">{b.reason}</span></td>
+                            <td className="px-4 py-3"><span className="text-zinc-400 text-xs">{b.bannedAt ? new Date(b.bannedAt).toLocaleString('ar-SA') : '-'}</span></td>
+                            <td className="px-4 py-3">
+                              <button onClick={() => handleUnban(b.id)} className="px-3 py-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all text-xs font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> فك الحظر
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {stats.banned.length === 0 && (
+                          <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">لا يوجد محظورين 🎉</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Admins Tab */}
+              {activeTab === 'admins' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  {/* Add Admin */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-4">
+                    <h3 className="text-white font-bold mb-4 flex items-center gap-2"><UserPlus className="w-5 h-5 text-purple-400" /> إضافة مشرف جديد</h3>
+                    <div className="flex gap-3">
+                      <input
+                        type="email"
+                        value={newAdminEmail}
+                        onChange={(e) => setNewAdminEmail(e.target.value)}
+                        placeholder="أدخل إيميل المشرف الجديد..."
+                        className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500/50 text-sm"
+                      />
+                      <button onClick={handleAddAdmin} className="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(147,51,234,0.3)]">
+                        إضافة
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Admins List */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <table className="w-full text-right">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/5">
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الدور</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.admins?.map((a: any, i: number) => (
+                          <tr key={a.email} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <td className="px-4 py-3"><span className="text-white text-sm">{a.email}</span></td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${a.role === 'مالك' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}`}>
+                                <Crown className="w-3 h-3" /> {a.role}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              {a.role !== 'مالك' && (
+                                <button onClick={() => handleRemoveAdmin(a.email)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all text-xs font-bold flex items-center gap-1">
+                                  <Trash2 className="w-3 h-3" /> إزالة
+                                </button>
+                              )}
+                              {a.role === 'مالك' && <span className="text-zinc-600 text-xs">لا يمكن إزالته</span>}
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
