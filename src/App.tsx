@@ -1225,7 +1225,7 @@ function SpooferGuide({ onClose }: { onClose: () => void }) {
               <span className="text-blue-400">👇</span> شرح UpdatedApple طريقة استعمال
             </h4>
             <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-              <video controls className="w-full" preload="metadata">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                 <source src="/video-updatedapple.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -1250,7 +1250,7 @@ function SpooferGuide({ onClose }: { onClose: () => void }) {
               <span className="text-blue-400">👇</span> شرح السبوفر
             </h4>
             <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-              <video controls className="w-full" preload="metadata">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                 <source src="/video-spoofer.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -1445,7 +1445,7 @@ function SiteGuide({ onClose }: { onClose: () => void }) {
           transition={{ delay: 0.2 }}
           className="w-full rounded-[2rem] overflow-hidden border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.6)] bg-black/60 backdrop-blur-lg"
         >
-          <video controls poster="/guide-poster.jpg" className="w-full h-auto max-h-[70vh] aspect-[16/9] object-contain" autoPlay playsInline>
+          <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} poster="/guide-poster.jpg" className="w-full h-auto max-h-[70vh] aspect-[16/9] object-contain" autoPlay playsInline>
             <source src="/guide-video.mp4" type="video/mp4" />
             متصفحك لا يدعم تشغيل الفيديو
           </video>
@@ -1587,7 +1587,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls className="w-full aspect-video outline-none" preload="metadata">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-time.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -1628,7 +1628,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls className="w-full aspect-video outline-none" preload="metadata">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-epic.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -1669,7 +1669,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls className="w-full aspect-video outline-none" preload="metadata">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-network.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
