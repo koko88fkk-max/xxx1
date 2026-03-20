@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed } from './lib/firebase';
+import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash } from 'lucide-react';
+import { auth, loginWithGoogle, logout, checkUserVIP, markUserAsVIP, isOrderUsed, isAdmin, getAdminStats } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -1913,6 +1913,207 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
   );
 }
 
+// 🔒 Admin Dashboard Component - Only accessible by admin
+function AdminDashboard({ onClose }: { onClose: () => void }) {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'orders'>('overview');
+
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      const data = await getAdminStats();
+      setStats(data);
+    } catch (e) {
+      console.error('Failed to load admin stats:', e);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadStats(); }, []);
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-xl overflow-y-auto"
+    >
+      <div className="min-h-screen p-4 md:p-8">
+        {/* Header */}
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-orange-500 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                <LayoutDashboard className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">لوحة التحكم</h1>
+                <p className="text-zinc-400 text-sm">إدارة متجر تعن T3N</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={loadStats}
+                className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white"
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            </div>
+          ) : stats ? (
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gradient-to-br from-blue-600/20 to-blue-800/10 border border-blue-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center"><Users className="w-5 h-5 text-blue-400" /></div>
+                    <span className="text-zinc-400 text-sm">إجمالي المستخدمين</span>
+                  </div>
+                  <p className="text-4xl font-bold text-white">{stats.totalUsers}</p>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-yellow-600/20 to-amber-800/10 border border-yellow-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center"><Star className="w-5 h-5 text-yellow-400" /></div>
+                    <span className="text-zinc-400 text-sm">عملاء VIP</span>
+                  </div>
+                  <p className="text-4xl font-bold text-white">{stats.vipUsers}</p>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gradient-to-br from-emerald-600/20 to-green-800/10 border border-emerald-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center"><Package className="w-5 h-5 text-emerald-400" /></div>
+                    <span className="text-zinc-400 text-sm">طلبات مستخدمة</span>
+                  </div>
+                  <p className="text-4xl font-bold text-white">{stats.totalOrders}</p>
+                </motion.div>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex gap-2 mb-6">
+                <button onClick={() => setActiveTab('users')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'users' ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><Users className="w-4 h-4" /> المستخدمين ({stats.totalUsers})</span>
+                </button>
+                <button onClick={() => setActiveTab('orders')} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><Package className="w-4 h-4" /> الطلبات ({stats.totalOrders})</span>
+                </button>
+              </div>
+
+              {/* Users Table */}
+              {activeTab === 'users' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/5">
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">رقم الطلب</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الحالة</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ التسجيل</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.users.map((u: any, i: number) => (
+                          <tr key={u.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-zinc-500" />
+                                <span className="text-white text-sm">{u.email || 'غير معروف'}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Hash className="w-4 h-4 text-zinc-500" />
+                                <span className="text-zinc-300 text-sm font-mono">{u.verifiedOrder || '-'}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {u.isVIP ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                                  <Star className="w-3 h-3" /> VIP
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-500/20 text-zinc-400 border border-zinc-500/30">عادي</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-zinc-500" />
+                                <span className="text-zinc-400 text-xs">{u.verifiedAt ? new Date(u.verifiedAt).toLocaleString('ar-SA') : '-'}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {stats.users.length === 0 && (
+                          <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">لا يوجد مستخدمين بعد</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Orders Table */}
+              {activeTab === 'orders' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-white/5">
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">رقم الطلب</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ الاستخدام</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.orders.map((o: any, i: number) => (
+                          <tr key={o.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                            <td className="px-4 py-3">
+                              <span className="text-white text-sm font-mono font-bold">{o.id}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-zinc-300 text-sm">{o.email || 'غير معروف'}</span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-zinc-400 text-xs">{o.usedAt ? new Date(o.usedAt).toLocaleString('ar-SA') : '-'}</span>
+                            </td>
+                          </tr>
+                        ))}
+                        {stats.orders.length === 0 && (
+                          <tr><td colSpan={3} className="px-4 py-8 text-center text-zinc-500">لا يوجد طلبات مستخدمة بعد</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+            </>
+          ) : (
+            <div className="text-center text-red-400 py-12">فشل تحميل البيانات</div>
+          )}
+        </div>
+      </div>
+    </motion.div>,
+    document.body
+  );
+}
+
 export default function App() {
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -1921,6 +2122,17 @@ export default function App() {
   const [showSpooferGuide, setShowSpooferGuide] = useState(false);
   const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('t3n-theme');
+    return saved ? saved === 'dark' : true;
+  });
+
+  // Apply theme
+  useEffect(() => {
+    document.documentElement.classList.toggle('light-mode', !darkMode);
+    localStorage.setItem('t3n-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   // Auto-hide toast after 5 seconds
   useEffect(() => {
@@ -2027,6 +2239,16 @@ export default function App() {
         document.body
       )}
 
+      {/* Theme Toggle Button */}
+      <motion.button
+        whileHover={{ scale: 1.1, rotate: 15 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setDarkMode(!darkMode)}
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all shadow-[0_8px_25px_rgba(0,0,0,0.3)]"
+      >
+        {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-blue-400" />}
+      </motion.button>
+
       <Navbar 
         isVerified={isVerifiedCustomer} 
         user={user} 
@@ -2036,6 +2258,20 @@ export default function App() {
         onSpooferClick={() => setShowSpooferGuide(true)} 
         onTroubleshootClick={() => setShowTroubleshoot(true)}
       />
+
+      {/* Admin Button - Only visible to admin */}
+      {user && isAdmin(user.email) && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowAdmin(true)}
+          className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(239,68,68,0.4)] border border-red-400/30 hover:shadow-[0_8px_35px_rgba(239,68,68,0.6)] transition-shadow"
+        >
+          <LayoutDashboard className="w-5 h-5" />
+        </motion.button>
+      )}
       <main>
         <Hero onSiteGuideClick={() => setShowSiteGuide(true)} />
         <OrderDelivery 
@@ -2104,6 +2340,11 @@ export default function App() {
 
       <AnimatePresence>
         {showTroubleshoot && <TroubleshootGuide onClose={() => setShowTroubleshoot(false)} />}
+      </AnimatePresence>
+
+      {/* 🔒 Admin Dashboard - Only for admin */}
+      <AnimatePresence>
+        {showAdmin && user && isAdmin(user.email) && <AdminDashboard onClose={() => setShowAdmin(false)} />}
       </AnimatePresence>
     </div>
   );

@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A",
@@ -11,6 +11,9 @@ const firebaseConfig = {
   appId: "1:1026259276675:web:8b1b49fb23373151531cb6",
   measurementId: "G-273H5TJ98L"
 };
+
+// 🔒 Admin email - ONLY this email can access Admin Dashboard
+const ADMIN_EMAIL = "koko.88.fkk@gmail.com";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -29,6 +32,11 @@ export async function loginWithGoogle() {
 
 export async function logout() {
   await signOut(auth);
+}
+
+// 🔒 Check if user is Admin (only your email)
+export function isAdmin(email: string | null): boolean {
+  return email === ADMIN_EMAIL;
 }
 
 // Check if user is VIP
@@ -75,4 +83,32 @@ export async function markUserAsVIP(uid: string, orderId: string, email: string)
     email: email,
     usedAt: new Date().toISOString()
   });
+}
+
+// 🔒 Admin: Get dashboard statistics
+export async function getAdminStats() {
+  // Get all VIP users
+  const usersSnap = await getDocs(collection(db, "users"));
+  const users: any[] = [];
+  let vipCount = 0;
+  usersSnap.forEach((doc) => {
+    const data = doc.data();
+    users.push({ id: doc.id, ...data });
+    if (data.isVIP) vipCount++;
+  });
+
+  // Get all used orders
+  const ordersSnap = await getDocs(collection(db, "usedOrders"));
+  const orders: any[] = [];
+  ordersSnap.forEach((doc) => {
+    orders.push({ id: doc.id, ...doc.data() });
+  });
+
+  return {
+    totalUsers: users.length,
+    vipUsers: vipCount,
+    totalOrders: orders.length,
+    users: users.sort((a, b) => (b.verifiedAt || '').localeCompare(a.verifiedAt || '')),
+    orders: orders.sort((a, b) => (b.usedAt || '').localeCompare(a.usedAt || '')),
+  };
 }
