@@ -2908,9 +2908,16 @@ export default function App() {
             transition={{ type: "spring", stiffness: 150, damping: 20 }}
             className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3"
           >
-            <motion.a
-              href="/discord.gg.t3n.rar"
-              download="discord.gg.t3n.rar"
+            <motion.button
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = '/discord.gg.t3n.rar';
+                link.download = 'discord.gg.t3n.rar';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              onContextMenu={(e) => e.preventDefault()}
               whileHover={{ scale: 1.1, x: -5 }}
               whileTap={{ scale: 0.95 }}
               className="group relative w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(37,99,235,0.4)] border border-blue-400/30 hover:shadow-[0_8px_35px_rgba(37,99,235,0.6)] transition-shadow"
@@ -2919,7 +2926,7 @@ export default function App() {
               <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-lg text-white text-sm font-bold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 shadow-xl">
                 تحميل ملف الطلب
               </div>
-            </motion.a>
+            </motion.button>
 
             <motion.a
               href={DISCORD_URL}
