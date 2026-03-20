@@ -2725,10 +2725,11 @@ export default function App() {
                 
                 if (discordUser && discordUser.id) {
                   console.log('Got Discord user:', discordUser.id);
+                  const idToken = await currentUser.getIdToken(true);
                   const backendRes = await fetch('/api/assign-role', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken })
+                    body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken, idToken: idToken })
                   });
                   
                   if (backendRes.ok) {
