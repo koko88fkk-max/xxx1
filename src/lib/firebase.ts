@@ -106,16 +106,16 @@ export async function checkUserVIP(uid: string) {
 // 📦 ORDER NUMBER SYSTEM
 // ==========================================
 
-// Validate order number format: starts with "24" and 9 digits total
+// Validate order number format: starts with "2" and 9 digits total
 export function isValidOrderFormat(value: string): boolean {
-  return /^24\d{7}$/.test(value.trim());
+  return /^2\d{8}$/.test(value.trim());
 }
 
 // 📦 Validate and activate an order number
 export async function activateOrder(orderId: string, uid: string, email: string): Promise<{ success: boolean; error?: string }> {
   const cleaned = orderId.trim();
   
-  // Validate format: 24XXXXXXX (9 digits starting with 24)
+  // Validate format: 2XXXXXXXX (9 digits starting with 2)
   if (!isValidOrderFormat(cleaned)) {
     return { success: false, error: 'رقم الطلب غير صحيح' };
   }
