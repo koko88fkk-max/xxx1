@@ -117,7 +117,7 @@ export async function activateOrder(orderId: string, uid: string, email: string)
   
   // Validate format: 24XXXXXXX (9 digits starting with 24)
   if (!isValidOrderFormat(cleaned)) {
-    return { success: false, error: 'صيغة رقم الطلب غير صحيحة. يجب أن يبدأ بـ 24 ويتكون من 9 أرقام' };
+    return { success: false, error: 'رقم الطلب غير صحيح' };
   }
 
   const orderRef = doc(db, "orders", cleaned);

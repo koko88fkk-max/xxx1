@@ -337,7 +337,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
 
     if (!isValidOrderFormat(orderInput)) {
       setStatus('error');
-      setErrorMsg('صيغة رقم الطلب غير صحيحة. يجب أن يبدأ بـ 24 ويتكون من 9 أرقام');
+      setErrorMsg('رقم الطلب غير صحيح، تأكد من إدخال رقم الطلب الصحيح');
       return;
     }
 
@@ -392,15 +392,12 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                     type="text"
                     value={orderInput}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 9);
-                      setOrderInput(val);
+                      setOrderInput(e.target.value);
                       if (status === 'error') setStatus('idle');
                     }}
-                    placeholder="24XXXXXXX"
+                    placeholder="أدخل رقم الطلب"
                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
                     dir="ltr"
-                    maxLength={9}
-                    inputMode="numeric"
                   />
                 </div>
 
