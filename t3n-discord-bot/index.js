@@ -64,38 +64,37 @@ if (!DISCORD_TOKEN) {
   process.exit(1);
 }
 
-// ====== Key Generation Logic ======
-function generateSegment(length) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  const bytes = crypto.randomBytes(length);
-  for (let i = 0; i < length; i++) {
-    result += chars[bytes[i] % chars.length];
+// ====== Order Generation Logic ======
+// Note: Orders are typically created via Salla, but for testing/manual we can create dummy ones
+function generateOrderNumber() {
+  const chars = '0123456789';
+  let result = '2';
+  for (let i = 0; i < 8; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
   }
   return result;
 }
 
 async function createDatabaseKey(username) {
-  let key = '';
+  let orderId = '';
   let exists = true;
   while (exists) {
-    key = `T3N-${generateSegment(6)}-${generateSegment(6)}`;
-    const keyRef = doc(db, "keys", key);
-    const keySnap = await getDoc(keyRef);
-    exists = keySnap.exists();
+    orderId = generateOrderNumber();
+    const orderRef = doc(db, "orders", orderId);
+    const orderSnap = await getDoc(orderRef);
+    exists = orderSnap.exists();
   }
   
-  const keyRef = doc(db, "keys", key);
-  await setDoc(keyRef, {
-    status: 'unused', 
+  const orderRef = doc(db, "orders", orderId);
+  await setDoc(orderRef, {
+    status: 'active', 
     createdAt: new Date().toISOString(),
     activatedAt: null,
     usedByEmail: null,
     usedByUid: null,
-    expiresAt: null,
     createdBy: `Discord (${username})`
   });
-  return key;
+  return orderId;
 }
 
 // ====== Ready & Slash Commands Registration ======
@@ -145,23 +144,23 @@ client.on('interactionCreate', async (interaction) => {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('👑 T3N KEYS MANAGEMENT - لوحة تحكم المفاتيح')
-        .setDescription('مرحباً بك في لوحة تحكم مفاتيح T3N.\nأي إجراء تقوم به هنا ينعكس فوراً على الموقع الرسمي (Real-Time).\nالرجاء اختيار أحد الإجراءات من الأزرار بالأسفل:')
+        .setTitle('👑 T3N ORDERS MANAGEMENT - لوحة تحكم الطلبات')
+        .setDescription('مرحباً بك في لوحة تحكم طلبات T3N.\nأي إجراء تقوم به هنا ينعكس فوراً على الموقع الرسمي (Real-Time).\nالرجاء اختيار أحد الإجراءات من الأزرار بالأسفل:')
         .setColor('#FFA500') // Orange/Amber Theme
         .setThumbnail(client.user.displayAvatarURL())
         .setFooter({ text: `T3N Security System - Requested by ${interaction.user.tag}` })
         .setTimestamp();
 
       const row1 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('btn_create_single').setLabel('🔑 إنشاء مفتاح').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId('btn_create_single').setLabel('🔑 إنشاء طلب مانوال').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId('btn_create_bulk').setLabel('📋 إنشاء متعدد 🔑').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('btn_ban').setLabel('🚫 حظر مفتاح').setStyle(ButtonStyle.Danger)
+        new ButtonBuilder().setCustomId('btn_ban').setLabel('🚫 حظر طلب').setStyle(ButtonStyle.Danger)
       );
 
       const row2 = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('btn_freeze').setLabel('❄️ تجميد مفتاح').setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder().setCustomId('btn_freeze').setLabel('❄️ تجميد طلب').setStyle(ButtonStyle.Secondary),
         new ButtonBuilder().setCustomId('btn_unban').setLabel('✅ فك حظر/تجميد').setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId('btn_delete').setLabel('🗑️ حذف مفتاح').setStyle(ButtonStyle.Danger)
+        new ButtonBuilder().setCustomId('btn_delete').setLabel('🗑️ حذف طلب').setStyle(ButtonStyle.Danger)
       );
 
       await interaction.reply({ embeds: [embed], components: [row1, row2], ephemeral: true });
@@ -226,14 +225,14 @@ client.on('interactionCreate', async (interaction) => {
       
       const modal = new ModalBuilder()
         .setCustomId(`modal_${interaction.customId.replace('btn_', '')}`)
-        .setTitle(`${actionName} مفتاح`);
+        .setTitle(`${actionName} طلب`);
       const keyInput = new TextInputBuilder()
         .setCustomId('input_key')
-        .setLabel(`أدخل المفتاح المراد ${actionName}ه:`)
+        .setLabel(`أدخل الطلب المراد ${actionName}ه:`)
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
-        .setMaxLength(20)
-        .setPlaceholder('T3N-XXXXXX-XXXXXX');
+        .setMaxLength(9)
+        .setPlaceholder('2XXXXXXXX');
       modal.addComponents(new ActionRowBuilder().addComponents(keyInput));
       await interaction.showModal(modal);
     }
@@ -278,8 +277,8 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.deferReply({ ephemeral: true });
       const keyId = interaction.fields.getTextInputValue('input_key').trim().replace(/\s/g, '');
       
-      if (!keyId.startsWith('T3N-')) {
-        return interaction.editReply({ content: '❌ صيغة المفتاح غير صحيحة. يجب أن يبدأ بـ T3N-' });
+      if (!/^2\d{8}$/.test(keyId)) {
+        return interaction.editReply({ content: '❌ صيغة رقم الطلب غير صحيحة. يجب أن يبدأ بـ 2 ويتكون من 9 أرقام.' });
       }
 
       try {
@@ -288,18 +287,18 @@ client.on('interactionCreate', async (interaction) => {
         let title = '';
         
         if (interaction.customId === 'modal_ban') {
-          newStatus = 'banned'; color = '#FF0000'; title = '🚫 تم حظر المفتاح';
+          newStatus = 'banned'; color = '#FF0000'; title = '🚫 تم حظر الطلب';
         } else if (interaction.customId === 'modal_freeze') {
-          newStatus = 'frozen'; color = '#00FFFF'; title = '❄️ تم تجميد المفتاح';
+          newStatus = 'frozen'; color = '#00FFFF'; title = '❄️ تم تجميد الطلب';
         } else if (interaction.customId === 'modal_unban') {
-          newStatus = 'unused'; color = '#00FF00'; title = '✅ تم فك الحظر والتجميد عن المفتاح';
+          newStatus = 'active'; color = '#00FF00'; title = '✅ تم فك الحظر والتجميد عن الطلب';
         }
 
-        const keyRef = doc(db, "keys", keyId);
+        const keyRef = doc(db, "orders", keyId);
         const keySnap = await getDoc(keyRef);
         
         if (!keySnap.exists()) {
-          return interaction.editReply({ content: '❌ المفتاح غير موجود في قاعدة البيانات.' });
+          return interaction.editReply({ content: '❌ الطلب غير موجود في قاعدة البيانات.' });
         }
         
         const keyData = keySnap.data();
@@ -331,11 +330,11 @@ client.on('interactionCreate', async (interaction) => {
       const keyId = interaction.fields.getTextInputValue('input_key').trim().replace(/\s/g, '');
       
       try {
-        const keyRef = doc(db, "keys", keyId);
+        const keyRef = doc(db, "orders", keyId);
         const keySnap = await getDoc(keyRef);
         
         if (!keySnap.exists()) {
-          return interaction.editReply({ content: '❌ المفتاح غير موجود في قاعدة البيانات.' });
+          return interaction.editReply({ content: '❌ الطلب غير موجود في قاعدة البيانات.' });
         }
         
         const keyData = keySnap.data();
@@ -347,8 +346,8 @@ client.on('interactionCreate', async (interaction) => {
         await deleteDoc(keyRef);
 
         const embed = new EmbedBuilder()
-          .setTitle('🗑️ تم حذف المفتاح نهائياً')
-          .setDescription(`المفتاح \`${keyId}\` مُسح من قاعدة البيانات نهائياً.`)
+          .setTitle('🗑️ تم حذف الطلب نهائياً')
+          .setDescription(`الطلب \`${keyId}\` مُسح من قاعدة البيانات نهائياً.`)
           .setColor('#FF0000');
           
         await interaction.editReply({ embeds: [embed] });
