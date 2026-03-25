@@ -422,4 +422,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   }
 });
 
-client.login(DISCORD_TOKEN);
+console.log('🔄 Attempting Discord login...');
+client.login(DISCORD_TOKEN).catch(err => {
+  console.error('❌ FATAL: Discord login failed:', err.message);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Rejection:', err);
+});
