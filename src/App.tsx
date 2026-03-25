@@ -1439,8 +1439,8 @@ function SiteGuide({ onClose }: { onClose: () => void }) {
           transition={{ delay: 0.2 }}
           className="w-full rounded-[2rem] overflow-hidden border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.6)] bg-black/60 backdrop-blur-lg"
         >
-          <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} poster="/guide-poster.jpg" className="w-full h-auto max-h-[70vh] aspect-[16/9] object-contain" autoPlay playsInline>
-            <source src="/guide-video.mp4" type="video/mp4" />
+          <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} poster="/site-guide-poster.jpg" className="w-full h-auto max-h-[70vh] aspect-[16/9] object-contain" autoPlay playsInline>
+            <source src="/site-guide-vid.mp4" type="video/mp4" />
             متصفحك لا يدعم تشغيل الفيديو
           </video>
         </motion.div>
