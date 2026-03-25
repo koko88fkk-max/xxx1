@@ -101,121 +101,212 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
 }
 
 function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on resize to desktop
+  useEffect(() => {
+    const handleResize = () => { if (window.innerWidth >= 768) setMobileMenuOpen(false); };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [mobileMenuOpen]);
+
+  const mobileNavLinks = [
+    { href: '#delivery', label: 'استلام الطلبات' },
+    { href: '#products', label: 'المنتجات' },
+    { href: '#reviews', label: 'التقييمات' },
+    { href: '#faq', label: 'الأسئلة الشائعة' },
+    { href: '#policies', label: 'القوانين' },
+  ];
+
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className="fixed top-0 left-0 right-0 z-50 glass-panel border-b-0"
-    >
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <motion.img 
-            whileHover={{ rotate: 10, scale: 1.1 }}
-            src={LOGO_URL} 
-            alt="تعن T3N" 
-            className="w-10 h-10 object-contain rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
-          />
-          <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">تعن T3N</span>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
-          <a href="#delivery" className="hover:text-blue-400 transition-colors drop-shadow-sm">استلام الطلبات</a>
-          <a href="#products" className="hover:text-blue-400 transition-colors drop-shadow-sm">المنتجات</a>
-          <a href="#reviews" className="hover:text-blue-400 transition-colors drop-shadow-sm">التقييمات</a>
-          <a href="#faq" className="hover:text-blue-400 transition-colors drop-shadow-sm">الأسئلة الشائعة</a>
-          <a href="#policies" className="hover:text-blue-400 transition-colors drop-shadow-sm">القوانين</a>
-          {isVerified && (
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={onTroubleshootClick}
-                className="text-red-400 hover:text-red-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-red-500/10 px-4 py-1.5 rounded-full border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
-              >
-                <Wrench className="w-4 h-4" />
-                حل مشاكل عامة
-              </button>
-              <button 
-                onClick={onSpooferClick}
-                className="text-yellow-400 hover:text-yellow-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-yellow-500/10 px-4 py-1.5 rounded-full border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
-              >
-                <Cpu className="w-4 h-4" />
-                شرح السبوفر
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {isVerified && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8, x: -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              className="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)] ml-2"
-            >
-              <div className="relative flex items-center justify-center w-6 h-6 animate-pulse drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]">
-                <img 
-                  src={LOGO_URL} 
-                  alt="نجمة المتجر" 
-                  className="w-full h-full object-cover bg-amber-500/10"
-                  style={{ clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)" }} 
-                />
+    <>
+      <motion.nav 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className="fixed top-0 left-0 right-0 z-50 glass-panel border-b-0"
+      >
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <motion.img 
+              whileHover={{ rotate: 10, scale: 1.1 }}
+              src={LOGO_URL} 
+              alt="تعن T3N" 
+              className="w-10 h-10 object-contain rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
+            />
+            <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">تعن T3N</span>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
+            <a href="#delivery" className="hover:text-blue-400 transition-colors drop-shadow-sm">استلام الطلبات</a>
+            <a href="#products" className="hover:text-blue-400 transition-colors drop-shadow-sm">المنتجات</a>
+            <a href="#reviews" className="hover:text-blue-400 transition-colors drop-shadow-sm">التقييمات</a>
+            <a href="#faq" className="hover:text-blue-400 transition-colors drop-shadow-sm">الأسئلة الشائعة</a>
+            <a href="#policies" className="hover:text-blue-400 transition-colors drop-shadow-sm">القوانين</a>
+            {isVerified && (
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={onTroubleshootClick}
+                  className="text-red-400 hover:text-red-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-red-500/10 px-4 py-1.5 rounded-full border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                >
+                  <Wrench className="w-4 h-4" />
+                  حل مشاكل عامة
+                </button>
+                <button 
+                  onClick={onSpooferClick}
+                  className="text-yellow-400 hover:text-yellow-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-yellow-500/10 px-4 py-1.5 rounded-full border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
+                >
+                  <Cpu className="w-4 h-4" />
+                  شرح السبوفر
+                </button>
               </div>
-              <span className="text-yellow-400 font-bold text-sm tracking-wide">عميل مميز</span>
-            </motion.div>
-          )}
+            )}
+          </div>
 
-          <motion.a 
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            href={DISCORD_URL} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="w-10 h-10 rounded-full bg-[#5865F2]/20 text-[#5865F2] border border-[#5865F2]/30 flex items-center justify-center hover:bg-[#5865F2]/30 hover:shadow-[0_0_15px_rgba(88,101,242,0.4)] transition-all"
-          >
-            <MessageCircle className="w-5 h-5" />
-          </motion.a>
-          {!authLoading && (
-            user ? (
-              <motion.button 
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onLogout}
-                className="h-10 px-3 md:px-4 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all gap-2"
+          <div className="flex items-center gap-3">
+            {isVerified && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8, x: -20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                className="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)] ml-2"
               >
-                <img src={user.photoURL || ''} alt="User" className="w-6 h-6 rounded-full object-cover" />
-                <span className="text-sm font-bold hidden md:block">تسجيل خروج</span>
-                <LogOut className="w-4 h-4 md:hidden" />
-              </motion.button>
-            ) : (
-              <motion.button 
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onLogin}
-                className="h-10 px-4 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all gap-2"
-              >
-                <svg className="w-5 h-5 bg-white rounded-full p-[2px]" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                <div className="relative flex items-center justify-center w-6 h-6 animate-pulse drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]">
+                  <img 
+                    src={LOGO_URL} 
+                    alt="نجمة المتجر" 
+                    className="w-full h-full object-cover bg-amber-500/10"
+                    style={{ clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)" }} 
+                  />
+                </div>
+                <span className="text-yellow-400 font-bold text-sm tracking-wide">عميل مميز</span>
+              </motion.div>
+            )}
+
+            <motion.a 
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              href={DISCORD_URL} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-10 h-10 rounded-full bg-[#5865F2]/20 text-[#5865F2] border border-[#5865F2]/30 flex items-center justify-center hover:bg-[#5865F2]/30 hover:shadow-[0_0_15px_rgba(88,101,242,0.4)] transition-all"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </motion.a>
+            {!authLoading && (
+              user ? (
+                <motion.button 
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onLogout}
+                  className="h-10 px-3 md:px-4 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all gap-2"
+                >
+                  <img src={user.photoURL || ''} alt="User" className="w-6 h-6 rounded-full object-cover" />
+                  <span className="text-sm font-bold hidden md:block">تسجيل خروج</span>
+                  <LogOut className="w-4 h-4 md:hidden" />
+                </motion.button>
+              ) : (
+                <motion.button 
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onLogin}
+                  className="h-10 px-4 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all gap-2"
+                >
+                  <svg className="w-5 h-5 bg-white rounded-full p-[2px]" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  <span className="text-sm font-bold hidden sm:block">دخول Google</span>
+                </motion.button>
+              )
+            )}
+            <motion.a 
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              href={STORE_URL} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-white hover:text-black hover:shadow-[0_0_15px_rgba(255,255,255,0.4)] transition-all ml-1"
+            >
+              <ShoppingBag className="w-5 h-5" />
+            </motion.a>
+
+            {/* Mobile Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all ml-1"
+              aria-label="القائمة"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-                <span className="text-sm font-bold">دخول Google</span>
-              </motion.button>
-            )
-          )}
-          <motion.a 
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            href={STORE_URL} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-white hover:text-black hover:shadow-[0_0_15px_rgba(255,255,255,0.4)] transition-all ml-1"
-          >
-            <ShoppingBag className="w-5 h-5" />
-          </motion.a>
+              )}
+            </button>
+          </div>
         </div>
-      </div>
-    </motion.nav>
+      </motion.nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[49] bg-[#06060c]/95 backdrop-blur-xl md:hidden"
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex flex-col items-center justify-center h-full gap-6 px-8"
+            >
+              {mobileNavLinks.map((link, i) => (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.06 }}
+                  className="text-2xl font-bold text-white hover:text-blue-400 transition-colors w-full text-center py-3 border-b border-white/5"
+                >
+                  {link.label}
+                </motion.a>
+              ))}
+
+              {isVerified && (
+                <div className="flex flex-col gap-3 w-full mt-4">
+                  <button 
+                    onClick={() => { setMobileMenuOpen(false); onTroubleshootClick?.(); }}
+                    className="text-red-400 font-bold flex items-center justify-center gap-2 bg-red-500/10 px-6 py-3 rounded-2xl border border-red-500/20 w-full"
+                  >
+                    <Wrench className="w-5 h-5" />
+                    حل مشاكل عامة
+                  </button>
+                  <button 
+                    onClick={() => { setMobileMenuOpen(false); onSpooferClick?.(); }}
+                    className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full"
+                  >
+                    <Cpu className="w-5 h-5" />
+                    شرح السبوفر
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
