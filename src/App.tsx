@@ -132,7 +132,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                 className="text-red-400 hover:text-red-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-red-500/10 px-4 py-1.5 rounded-full border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
               >
                 <Wrench className="w-4 h-4" />
-                حل مشاكل
+                حل مشاكل عامة
               </button>
               <button 
                 onClick={onSpooferClick}
