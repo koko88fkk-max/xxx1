@@ -2666,6 +2666,22 @@ export default function App() {
     return saved ? saved === 'dark' : true;
   });
 
+  const [appLoading, setAppLoading] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    // Scroll to top listener
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial loading screen timeout
+    const timer = setTimeout(() => setAppLoading(false), 2000);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timer);
+    };
+  }, []);
+
   // Apply theme
   useEffect(() => {
     document.documentElement.classList.toggle('light-mode', !darkMode);
@@ -2821,6 +2837,48 @@ export default function App() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#06060c] text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
+      {/* 🚀 Initial Loading Screen */}
+      <AnimatePresence>
+        {appLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[999999] bg-[#06060c] flex flex-col items-center justify-center"
+          >
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ repeat: Infinity, duration: 2.5 }}
+              className="relative w-32 h-32 mb-8"
+            >
+              <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse" />
+              <img src={LOGO_URL} alt="T3N Logo" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_25px_rgba(59,130,246,0.6)]" />
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-col items-center gap-4"
+            >
+              <h2 className="text-3xl font-extrabold text-white tracking-widest drop-shadow-lg">T3N STORE</h2>
+              <div className="flex gap-2 mt-2">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                    className="w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Professional Toast Notification */}
       {toast && createPortal(
         <AnimatePresence>
@@ -2858,6 +2916,23 @@ export default function App() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            whileHover={{ scale: 1.1, y: -5 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-blue-600/20 backdrop-blur-xl border border-blue-500/30 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-[0_8px_25px_rgba(37,99,235,0.3)]"
+          >
+            <ChevronUp className="w-6 h-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Theme Toggle Button */}
       <motion.button
