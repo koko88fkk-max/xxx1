@@ -106,9 +106,11 @@ export async function checkUserVIP(uid: string) {
 // 📦 ORDER NUMBER SYSTEM
 // ==========================================
 
-// Validate order number format: starts with "2" and 9 digits total
+// Validate order number format: starts with "24", 9 digits total, OR the specific custom static key
 export function isValidOrderFormat(value: string): boolean {
-  return /^2\d{8}$/.test(value.trim());
+  const cleaned = value.trim();
+  if (cleaned === "T3N-un4U6I-kd8bN2") return true; // الاستثناء الخاص للكود
+  return /^24\d{7}$/.test(cleaned); // أرقام الطلب التي تبدأ بـ 24 وتتكون من 9 أرقام
 }
 
 // 📦 Validate and activate an order number
