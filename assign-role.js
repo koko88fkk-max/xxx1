@@ -90,24 +90,24 @@ export default async function handler(req, res) {
     const embed = {
       embeds: [{
         title: '👑 عملية ربط رتبة جديدة',
-        description: `تم منح رتبة **Customer** بنجاح عبر بوابة T3N الرسمية.`,
-        color: 0x001F3F,
-        thumbnail: { url: avatarURL },
+        description: `تم منح العميل رتبة **Customer** عبر منصة T3N الرسمية.`,
+        color: 0x001F3F, // Dark Navy Blue
+        thumbnail: { url: avatarURL }, // الصورة المصغرة الأنيقة بالزاوية
         fields: [
-          { name: '👤 الاسم', value: `\`${user.username}\``, inline: true },
+          { name: '📦 المفتاح (رقم الطلب)', value: `\`${orderNumber}\``, inline: false },
+          
+          { name: '👤 اسم الحساب', value: `\`${user.username}\``, inline: true },
           { name: '🏷️ الاسم الكامل', value: `\`${user.global_name || user.username}\``, inline: true },
-          { name: '🆔 معرف الديسكورد', value: `\`${user.id}\``, inline: true },
-          { name: '📦 رقم الطلب (المفتاح)', value: `\`${orderNumber}\``, inline: false },
-          { name: '🎖️ الرتبة الممنوحة', value: `<@&${ROLE_ID}>`, inline: true },
-          { name: '🌐 مصدر العملية', value: '`بوابة T3N الرسمية`', inline: true },
-          { name: '🔐 Firebase UID', value: `\`${verifiedUid}\``, inline: true },
-          { name: '📅 تاريخ إنشاء الحساب', value: `\`${createdDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}\``, inline: true },
+          { name: '🆔 الأيدي (ID)', value: `\`${user.id}\``, inline: true },
+          
           { name: '⏳ عمر الحساب', value: `\`${ageText}\``, inline: true },
-          { name: '📧 الإيميل', value: user.email ? `\`${user.email}\`` : '`غير متوفر`', inline: true },
+          { name: '📅 تاريخ الإنشاء', value: `\`${createdDate.toLocaleDateString('en-GB')}\``, inline: true },
+          { name: '🎖️ الرتبة', value: `<@&${ROLE_ID}>`, inline: true },
+          
+          { name: '🔐 هوية النظام (UID)', value: `\`${verifiedUid}\``, inline: false },
         ],
-        image: { url: avatarURL },
         footer: { 
-          text: `T3N Security System • ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })} - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
+          text: `T3N Security System • ${now.toLocaleDateString('en-GB')} - ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
           icon_url: avatarURL
         },
         timestamp: now.toISOString()
