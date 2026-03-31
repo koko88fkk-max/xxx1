@@ -109,6 +109,67 @@ export default async function handler(req, res) {
     }
 
     console.log("Success! Role assigned successfully.");
+
+    // ==== إرسال إشعار فخم لروم السجلات ====
+    const LOG_CHANNEL_ID = '1472360395363586138';
+    try {
+      // جلب معلومات العميل من ديسكورد
+      const userInfoRes = await axios.get(
+        `https://discord.com/api/v10/users/${discordId}`,
+        { headers: { 'Authorization': `Bot ${BOT_TOKEN}` } }
+      );
+      const user = userInfoRes.data;
+      const avatarURL = user.avatar 
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith('a_') ? 'gif' : 'png'}?size=512`
+        : `https://cdn.discordapp.com/embed/avatars/${(BigInt(user.id) >> 22n) % 6n}.png`;
+      
+      // حساب تاريخ إنشاء الحساب
+      const createdTimestamp = Number(BigInt(user.id) >> 22n) + 1420070400000;
+      const createdDate = new Date(createdTimestamp);
+      const now = new Date();
+      
+      // حساب عمر الحساب
+      const ageDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+      const ageYears = Math.floor(ageDays / 365);
+      const ageMonths = Math.floor((ageDays % 365) / 30);
+      const ageText = ageYears > 0 ? `${ageYears} سنة و ${ageMonths} شهر` : `${ageMonths} شهر و ${ageDays % 30} يوم`;
+
+      const embed = {
+        embeds: [{
+          title: '👑 عملية ربط رتبة جديدة',
+          description: `تم منح رتبة **Customer** بنجاح عبر بوابة T3N الرسمية.`,
+          color: 0x001F3F,
+          thumbnail: { url: avatarURL },
+          fields: [
+            { name: '👤 الاسم', value: `\`${user.username}\``, inline: true },
+            { name: '🆔 معرف الديسكورد', value: `\`${user.id}\``, inline: true },
+            { name: '🏷️ الاسم الكامل', value: `\`${user.global_name || user.username}\``, inline: true },
+            { name: '🎖️ الرتبة الممنوحة', value: `<@&${ROLE_ID}>`, inline: true },
+            { name: '🌐 مصدر العملية', value: '`بوابة T3N الرسمية`', inline: true },
+            { name: '🔐 Firebase UID', value: `\`${verifiedUid}\``, inline: true },
+            { name: '📅 تاريخ إنشاء الحساب', value: `\`${createdDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}\``, inline: true },
+            { name: '⏳ عمر الحساب', value: `\`${ageText}\``, inline: true },
+            { name: '📧 الإيميل', value: user.email ? `\`${user.email}\`` : '`غير متوفر`', inline: true },
+          ],
+          image: { url: avatarURL },
+          footer: { 
+            text: `T3N Security System • ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })} - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
+            icon_url: avatarURL
+          },
+          timestamp: now.toISOString()
+        }]
+      };
+
+      await axios.post(
+        `https://discord.com/api/v10/channels/${LOG_CHANNEL_ID}/messages`,
+        embed,
+        { headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' } }
+      );
+      console.log("Log embed sent successfully to channel.");
+    } catch (logErr) {
+      console.error("Failed to send log embed (non-critical):", logErr.response?.data || logErr.message);
+    }
+
     res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });
   } catch (error) {
     console.error('Unhandled Error assigning role:', error);
