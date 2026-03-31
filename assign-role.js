@@ -1,0 +1,177 @@
+import axios from 'axios';
+
+export default async function handler(req, res) {
+  // CORS setup
+  res.setHeader('Access-Control-Allow-Credentials', true)
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  )
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  console.log("Starting assign-role POST request");
+
+  const { discordId, accessToken, idToken } = req.body;
+  if (!discordId || !accessToken || !idToken) {
+    console.error("Missing discordId, accessToken, or idToken in body");
+    return res.status(400).json({ error: 'يجب توفير ID الديسكورد وتوكن الحماية للوصول' });
+  }
+
+  const BOT_TOKEN = process.env.BOT_TOKEN; 
+  const GUILD_ID = process.env.GUILD_ID || '1396959491786018826';
+  const ROLE_ID = process.env.ROLE_ID || '1397221350095192074';
+  const FIREBASE_API_KEY = "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A";
+  const FIREBASE_PROJECT_ID = "t3n-stor-cd7d7";
+
+  if (!BOT_TOKEN) {
+    console.error("FATAL: BOT_TOKEN is missing in Vercel environment variables");
+    return res.status(500).json({ 
+      error: "خطأ في السيرفر: التوكن الخاص بالبوت غير موجود. يرجى إضافته في Vercel (BOT_TOKEN)" 
+    });
+  }
+
+  // ==== الحماية: 1. التحقق من الهوية المشفرة ====
+  let verifiedUid;
+  try {
+    const authRes = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`, {
+      idToken
+    });
+    if (!authRes.data.users || authRes.data.users.length === 0) throw new Error("No user found for token");
+    verifiedUid = authRes.data.users[0].localId;
+  } catch (err) {
+    console.error("Identity verification failed:", err.response?.data || err.message);
+    return res.status(403).json({ error: 'مرفوض طلب مزيف: توكن الحماية غير صالح الجلسة.' });
+  }
+
+  // ==== الحماية: 2. التحقق من حالة مفتاح الـ VIP للعميل ====
+  try {
+    const docRes = await axios.get(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${verifiedUid}`);
+    const isVIP = docRes.data.fields?.isVIP?.booleanValue;
+    if (isVIP !== true) {
+      console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
+      return res.status(403).json({ error: 'مرفوض: لا تملك مفتاح VIP فعّال للحصول على الرتبة الدائمة.' });
+    }
+  } catch (err) {
+    console.error("Firestore user verification failed:", err.response?.data || err.message);
+    return res.status(500).json({ error: 'فشل الاتصال بقاعدة البيانات للتحقق من صلاحيتك.' });
+  }
+
+
+  try {
+    console.log(`Adding member ${discordId} to guild ${GUILD_ID}`);
+    
+    // استخراج بيانات العميل من ديسكورد
+    const userRes = await axios.get(`https://discord.com/api/v10/users/@me`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const user = userRes.data;
+    const avatarURL = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+    const createdDate = new Date((Number(user.id) / 4194304) + 1420070400000);
+    const now = new Date();
+
+    // استخراج رقم الطلب من الداتا حق العميل الموثقة
+    const orderNumber = docRes.data.fields?.verifiedOrder?.stringValue || 'غير متوفر';
+
+    // حساب عمر الحساب
+    const ageDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+    const ageYears = Math.floor(ageDays / 365);
+    const ageMonths = Math.floor((ageDays % 365) / 30);
+    const ageText = ageYears > 0 ? `${ageYears} سنة و ${ageMonths} شهر` : `${ageMonths} شهر و ${ageDays % 30} يوم`;
+
+    const embed = {
+      embeds: [{
+        title: '👑 عملية ربط رتبة جديدة',
+        description: `تم منح رتبة **Customer** بنجاح عبر بوابة T3N الرسمية.`,
+        color: 0x001F3F,
+        thumbnail: { url: avatarURL },
+        fields: [
+          { name: '👤 الاسم', value: `\`${user.username}\``, inline: true },
+          { name: '🏷️ الاسم الكامل', value: `\`${user.global_name || user.username}\``, inline: true },
+          { name: '🆔 معرف الديسكورد', value: `\`${user.id}\``, inline: true },
+          { name: '📦 رقم الطلب (المفتاح)', value: `\`${orderNumber}\``, inline: false },
+          { name: '🎖️ الرتبة الممنوحة', value: `<@&${ROLE_ID}>`, inline: true },
+          { name: '🌐 مصدر العملية', value: '`بوابة T3N الرسمية`', inline: true },
+          { name: '🔐 Firebase UID', value: `\`${verifiedUid}\``, inline: true },
+          { name: '📅 تاريخ إنشاء الحساب', value: `\`${createdDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}\``, inline: true },
+          { name: '⏳ عمر الحساب', value: `\`${ageText}\``, inline: true },
+          { name: '📧 الإيميل', value: user.email ? `\`${user.email}\`` : '`غير متوفر`', inline: true },
+        ],
+        image: { url: avatarURL },
+        footer: { 
+          text: `T3N Security System • ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })} - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
+          icon_url: avatarURL
+        },
+        timestamp: now.toISOString()
+      }]
+    };
+
+    // 1. محاولة إدخال العميل للسيرفر وإعطائه الرتبة
+    let response;
+    try {
+      response = await axios.put(
+        `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordId}`,
+        {
+          access_token: accessToken,
+          roles: [ROLE_ID]
+        },
+        {
+          headers: {
+            'Authorization': `Bot ${BOT_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    } catch (err) {
+      console.error("Axios PUT to add member failed:", err.response?.data || err.message);
+      return res.status(500).json({ error: 'فشل في إدخال العميل للسيرفر (ديسكورد رفض الطلب)', details: err.response?.data });
+    }
+    
+    // 2. لو كان العميل موجود مسبقاً في السيرفر، الديسكورد بيرد بـ 204 No Content
+    if (response.status === 204) {
+      console.log(`User already in guild. Assigning role ${ROLE_ID} directly.`);
+      try {
+        await axios.put(
+          `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordId}/roles/${ROLE_ID}`,
+          {},
+          {
+            headers: {
+              'Authorization': `Bot ${BOT_TOKEN}`
+            }
+          }
+        );
+      } catch (err) {
+        console.error("Axios PUT to assign role failed:", err.response?.data || err.message);
+        return res.status(500).json({ error: 'العميل موجود بالسيرفر لكن فشل إعطائه الرتبة', details: err.response?.data });
+      }
+    }
+
+    console.log("Success! Role assigned successfully.");
+    
+    // ==== إرسال إشعار فخم لروم السجلات ====
+    const LOG_CHANNEL_ID = '1472360395363586138';
+    try {
+      await axios.post(
+        `https://discord.com/api/v10/channels/${LOG_CHANNEL_ID}/messages`,
+        embed,
+        { headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' } }
+      );
+      console.log("Log embed sent successfully to channel.");
+    } catch (logErr) {
+      console.error("Failed to send log embed (non-critical):", logErr.response?.data || logErr.message);
+    }
+
+    res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });
+  } catch (error) {
+    console.error('Unhandled Error assigning role:', error);
+    res.status(500).json({ error: 'مشكلة داخلية في الاتصال مع ديسكورد', details: error.message });
+  }
+}
