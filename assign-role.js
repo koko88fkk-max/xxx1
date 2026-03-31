@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // كاش مؤقت يمنع تكرار الإشعار للمستخدم الواحد خلال 15 ثانية (يحل مشكلة إرسال رسالتين بسبب تعليق أو ضغطتين)
 const recentLogs = new Set();
 
@@ -61,7 +59,7 @@ export default async function handler(req, res) {
     const docRes = await axios.get(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${verifiedUid}`);
     const isVIP = docRes.data.fields?.isVIP?.booleanValue;
     orderNumber = docRes.data.fields?.verifiedOrder?.stringValue || 'غير متوفر';
-    
+
     if (isVIP !== true) {
       console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
       return res.status(403).json({ error: 'مرفوض: لا تملك مفتاح VIP فعّال للحصول على الرتبة الدائمة.' });
@@ -70,6 +68,7 @@ export default async function handler(req, res) {
     console.error("Firestore user verification failed:", err.response?.data || err.message);
     return res.status(500).json({ error: 'فشل الاتصال بقاعدة البيانات للتحقق من صلاحيتك.' });
   }
+
 
   try {
     console.log(`Adding member ${discordId} to guild ${GUILD_ID}`);
@@ -117,7 +116,7 @@ export default async function handler(req, res) {
 
     // ==== إرسال إشعار فخم لروم السجلات ====
     const LOG_CHANNEL_ID = '1472360395363586138';
-    
+
     // فحص ما إذا كان أُرسل إشعار لنفس اليوزر في آخر 15 ثانية (تفادي التكرار)
     if (recentLogs.has(verifiedUid)) {
       console.log("Duplicate log prevented for:", verifiedUid);
@@ -129,7 +128,7 @@ export default async function handler(req, res) {
     setTimeout(() => recentLogs.delete(verifiedUid), 15000);
 
     try {
-      // استخراج بيانات العميل من ديسكورد مباشرة
+      // استخراج بيانات العميل من ديسكورد
       const userRes = await axios.get(`https://discord.com/api/v10/users/@me`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
@@ -147,9 +146,9 @@ export default async function handler(req, res) {
       const embed = {
         embeds: [{
           title: '👑 عملية ربط رتبة جديدة',
-          description: `تم منح العميل رتبة **Customer** عبر منصة T3N الرسمية.`,
+          description: `تم منح العميل <@${user.id}> رتبة **Customer** عبر منصة T3N الرسمية.`,
           color: 0x001F3F, // Dark Navy Blue
-          thumbnail: { url: avatarURL }, // عرض الصورة مصغرة باليمين لتوفير المساحة
+          thumbnail: { url: avatarURL }, // الصورة المصغرة الأنيقة بالزاوية
           fields: [
             { name: '📦 المفتاح (رقم الطلب)', value: `\`${orderNumber}\``, inline: false },
             
