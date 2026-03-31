@@ -1,5 +1,5 @@
-// كاش مؤقت يمنع تكرار الإشعار للمستخدم الواحد خلال 15 ثانية (يحل مشكلة إرسال رسالتين بسبب تعليق أو ضغطتين)
-const recentLogs = new Set();
+// كاش مؤقت يمنع تكرار الإشعار للمستخدم الواحد خلال 15 ثانية (متوافق مع Vercel/Railway Serverless)
+const recentLogs = new Map();
 
 export default async function handler(req, res) {
   // CORS setup
@@ -117,15 +117,16 @@ export default async function handler(req, res) {
     // ==== إرسال إشعار فخم لروم السجلات ====
     const LOG_CHANNEL_ID = '1472360395363586138';
 
-    // فحص ما إذا كان أُرسل إشعار لنفس اليوزر في آخر 15 ثانية (تفادي التكرار)
-    if (recentLogs.has(verifiedUid)) {
+    // فحص الإشعارات المكررة بنظام الوقت (15 ثانية)
+    const nowMs = Date.now();
+    const lastLogTime = recentLogs.get(verifiedUid);
+    if (lastLogTime && (nowMs - lastLogTime) < 15000) {
       console.log("Duplicate log prevented for:", verifiedUid);
       return res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });
     }
     
-    // إضافة اليوزر وقفل الإشعارات المكررة له لمدة 15 ثانية
-    recentLogs.add(verifiedUid);
-    setTimeout(() => recentLogs.delete(verifiedUid), 15000);
+    // تحديث وقت آخر إرسال لليوزر
+    recentLogs.set(verifiedUid, nowMs);
 
     try {
       // استخراج بيانات العميل من ديسكورد
