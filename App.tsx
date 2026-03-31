@@ -8,7 +8,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 const LOGO_URL = "/logo.png";
 const STORE_URL = "https://salla.sa/t3nn";
 const DISCORD_URL = "https://discord.gg/tjMWEccj3J";
-const DISCORD_OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=1462977086653464729&redirect_uri=https%3A%2F%2Ft3n-2a2i.vercel.app%2F&response_type=token&scope=identify%20guilds.join";
+const DISCORD_OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=1488296803278389349&redirect_uri=https%3A%2F%2Ft3n-2a2i.vercel.app%2F&response_type=token&scope=identify%20guilds.join";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
