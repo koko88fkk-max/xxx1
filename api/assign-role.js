@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// كاش مؤقت يمنع تكرار الإشعار للمستخدم الواحد خلال 15 ثانية (متوافق مع Vercel/Railway Serverless)
+const recentLogs = new Map();
+
 export default async function handler(req, res) {
   // CORS setup
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -53,9 +56,12 @@ export default async function handler(req, res) {
   }
 
   // ==== الحماية: 2. التحقق من حالة مفتاح الـ VIP للعميل ====
+  let orderNumber = 'غير متوفر';
   try {
     const docRes = await axios.get(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${verifiedUid}`);
     const isVIP = docRes.data.fields?.isVIP?.booleanValue;
+    orderNumber = docRes.data.fields?.verifiedOrder?.stringValue || 'غير متوفر';
+    
     if (isVIP !== true) {
       console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
       return res.status(403).json({ error: 'مرفوض: لا تملك مفتاح VIP فعّال للحصول على الرتبة الدائمة.' });
@@ -64,7 +70,6 @@ export default async function handler(req, res) {
     console.error("Firestore user verification failed:", err.response?.data || err.message);
     return res.status(500).json({ error: 'فشل الاتصال بقاعدة البيانات للتحقق من صلاحيتك.' });
   }
-
 
   try {
     console.log(`Adding member ${discordId} to guild ${GUILD_ID}`);
@@ -112,20 +117,26 @@ export default async function handler(req, res) {
 
     // ==== إرسال إشعار فخم لروم السجلات ====
     const LOG_CHANNEL_ID = '1472360395363586138';
+    
+    // فحص الإشعارات المكررة بنظام الوقت (15 ثانية)
+    const nowMs = Date.now();
+    const lastLogTime = recentLogs.get(verifiedUid);
+    if (lastLogTime && (nowMs - lastLogTime) < 15000) {
+      console.log("Duplicate log prevented for:", verifiedUid);
+      return res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });
+    }
+    
+    // تحديث وقت آخر إرسال لليوزر
+    recentLogs.set(verifiedUid, nowMs);
+
     try {
-      // جلب معلومات العميل من ديسكورد
-      const userInfoRes = await axios.get(
-        `https://discord.com/api/v10/users/${discordId}`,
-        { headers: { 'Authorization': `Bot ${BOT_TOKEN}` } }
-      );
-      const user = userInfoRes.data;
-      const avatarURL = user.avatar 
-        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith('a_') ? 'gif' : 'png'}?size=512`
-        : `https://cdn.discordapp.com/embed/avatars/${(BigInt(user.id) >> 22n) % 6n}.png`;
-      
-      // حساب تاريخ إنشاء الحساب
-      const createdTimestamp = Number(BigInt(user.id) >> 22n) + 1420070400000;
-      const createdDate = new Date(createdTimestamp);
+      // استخراج بيانات العميل من ديسكورد مباشرة
+      const userRes = await axios.get(`https://discord.com/api/v10/users/@me`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      const user = userRes.data;
+      const avatarURL = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+      const createdDate = new Date((Number(user.id) / 4194304) + 1420070400000);
       const now = new Date();
       
       // حساب عمر الحساب
@@ -137,23 +148,24 @@ export default async function handler(req, res) {
       const embed = {
         embeds: [{
           title: '👑 عملية ربط رتبة جديدة',
-          description: `تم منح رتبة **Customer** بنجاح عبر بوابة T3N الرسمية.`,
-          color: 0x001F3F,
-          thumbnail: { url: avatarURL },
+          description: `تم منح العميل رتبة **Customer** عبر منصة T3N الرسمية.`,
+          color: 0x001F3F, // Dark Navy Blue
+          thumbnail: { url: avatarURL }, // عرض الصورة مصغرة باليمين لتوفير المساحة
           fields: [
-            { name: '👤 الاسم', value: `\`${user.username}\``, inline: true },
-            { name: '🆔 معرف الديسكورد', value: `\`${user.id}\``, inline: true },
+            { name: '📦 المفتاح (رقم الطلب)', value: `\`${orderNumber}\``, inline: false },
+            
+            { name: '👤 اسم الحساب', value: `\`${user.username}\``, inline: true },
             { name: '🏷️ الاسم الكامل', value: `\`${user.global_name || user.username}\``, inline: true },
-            { name: '🎖️ الرتبة الممنوحة', value: `<@&${ROLE_ID}>`, inline: true },
-            { name: '🌐 مصدر العملية', value: '`بوابة T3N الرسمية`', inline: true },
-            { name: '🔐 Firebase UID', value: `\`${verifiedUid}\``, inline: true },
-            { name: '📅 تاريخ إنشاء الحساب', value: `\`${createdDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}\``, inline: true },
+            { name: '🆔 الأيدي (ID)', value: `\`${user.id}\``, inline: true },
+            
             { name: '⏳ عمر الحساب', value: `\`${ageText}\``, inline: true },
-            { name: '📧 الإيميل', value: user.email ? `\`${user.email}\`` : '`غير متوفر`', inline: true },
+            { name: '📅 تاريخ الإنشاء', value: `\`${createdDate.toLocaleDateString('en-GB')}\``, inline: true },
+            { name: '🎖️ الرتبة', value: `<@&${ROLE_ID}>`, inline: true },
+            
+            { name: '🔐 هوية النظام (UID)', value: `\`${verifiedUid}\``, inline: false },
           ],
-          image: { url: avatarURL },
           footer: { 
-            text: `T3N Security System • ${now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })} - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`,
+            text: `T3N Security System • ${now.toLocaleDateString('en-GB')} - ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
             icon_url: avatarURL
           },
           timestamp: now.toISOString()

@@ -358,27 +358,27 @@ function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
             وجهتك الأولى للمنتجات الرقمية المتميزة. جودة، سرعة، وموثوقية في مكان واحد.
           </p>
           
-          <div className="flex flex-col gap-5 justify-center w-full sm:w-auto items-center mt-4">
+          <div className="flex flex-col gap-4 justify-center items-center mt-4 w-full max-w-md mx-auto">
             {/* Site Guide Button */}
             <motion.button 
               whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59,130,246,0.3)" }}
               whileTap={{ scale: 0.95 }}
               onClick={onSiteGuideClick}
-              className="px-8 py-4 bg-blue-600 border border-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all w-full md:w-auto md:min-w-[300px]"
+              className="px-8 py-4 bg-blue-600 border border-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all w-full"
             >
               <MonitorPlay className="w-5 h-5" />
               شرح بوابة تعن
             </motion.button>
             
             {/* Store and Discord Buttons */}
-            <div className="flex flex-col sm:flex-row gap-5 w-full">
+            <div className="flex flex-col sm:flex-row gap-4 w-full">
               <motion.a 
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.3)" }}
                 whileTap={{ scale: 0.95 }}
                 href={STORE_URL} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-8 py-4 bg-white text-black font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-colors w-full sm:w-auto"
+                className="px-8 py-4 bg-white text-black font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-colors w-full sm:flex-1"
               >
                 <ShoppingBag className="w-5 h-5" />
                 تصفح المتجر
@@ -389,7 +389,7 @@ function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
                 href={DISCORD_URL} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-8 py-4 glass-panel text-[#5865F2] font-bold rounded-2xl hover:bg-[#5865F2]/10 flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+                className="px-8 py-4 glass-panel text-[#5865F2] font-bold rounded-2xl hover:bg-[#5865F2]/10 flex items-center justify-center gap-2 transition-colors w-full sm:flex-1"
               >
                 <MessageCircle className="w-5 h-5" />
                 مجتمع ديسكورد
@@ -453,7 +453,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
   };
 
   return (
-    <section id="delivery" className="py-32 relative z-10">
+    <section id="delivery" className="py-20 md:py-28 relative z-10">
       <div className="container mx-auto px-4 max-w-4xl">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -670,7 +670,7 @@ function Products() {
   ];
 
   return (
-    <section id="products" className="py-32 relative z-10">
+    <section id="products" className="py-20 md:py-28 relative z-10">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 relative z-20">
         <motion.div 
@@ -847,7 +847,7 @@ function Reviews() {
   }, [isModalOpen, selectedImage]);
 
   return (
-    <section id="reviews" className="py-32 relative z-10">
+    <section id="reviews" className="py-20 md:py-28 relative z-10">
       <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -1123,7 +1123,7 @@ function Policies() {
   ];
 
   return (
-    <section id="policies" className="py-32 relative z-10">
+    <section id="policies" className="py-20 md:py-28 relative z-10">
       <div className="absolute inset-0 bg-gradient-to-t from-[#050508] to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 max-w-4xl relative z-20">
         <motion.div 
@@ -1148,7 +1148,7 @@ function Policies() {
               transition={{ delay: index * 0.1 }}
             >
               <TiltCard className="glass-panel-hover glass-panel rounded-2xl p-6 md:p-8 flex gap-6 items-start transition-all">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold shrink-0 border border-blue-500/20 shadow-inner">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-lg shrink-0 border border-blue-500/20 shadow-inner leading-none">
                   {index + 1}
                 </div>
                 <div>
