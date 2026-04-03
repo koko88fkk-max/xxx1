@@ -104,102 +104,37 @@ img {
    🎬 CUSTOM VIDEO PLAYER STYLING
    ======================================== */
 
-/* Video container styling */
+/* Video container - clean rounded corners, no overlay */
 video {
   border-radius: 12px;
-  background: #0a0a1a;
+  background: #000;
   outline: none;
+  accent-color: #3b82f6;
 }
 
-/* Chrome / Edge / Safari - Controls Bar */
-video::-webkit-media-controls-panel {
-  background: linear-gradient(180deg, transparent 0%, rgba(6, 6, 20, 0.85) 40%, rgba(6, 6, 20, 0.95) 100%) !important;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  padding: 8px 12px;
-}
-
-/* Play button */
-video::-webkit-media-controls-play-button {
-  filter: brightness(1.2);
-  border-radius: 50%;
-  transition: transform 0.2s ease;
-}
-video::-webkit-media-controls-play-button:hover {
-  transform: scale(1.15);
-}
-
-/* Timeline / Progress bar */
+/* Progress bar / timeline - blue accent */
 video::-webkit-media-controls-timeline {
-  height: 4px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.12);
-  outline: none;
-}
-video::-webkit-media-controls-timeline:hover {
-  height: 6px;
 }
 
-/* Current time & remaining displays */
+/* Time text styling */
 video::-webkit-media-controls-current-time-display,
 video::-webkit-media-controls-time-remaining-display {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   font-family: 'Cairo', sans-serif;
   font-size: 12px;
   font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* Volume slider */
 video::-webkit-media-controls-volume-slider {
-  height: 4px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Mute button */
-video::-webkit-media-controls-mute-button {
-  filter: brightness(1.1);
-  border-radius: 50%;
-}
-
-/* Fullscreen button */
-video::-webkit-media-controls-fullscreen-button {
-  filter: brightness(1.1);
-  border-radius: 6px;
-  transition: transform 0.2s ease;
-}
-video::-webkit-media-controls-fullscreen-button:hover {
-  transform: scale(1.1);
-}
-
-/* Overflow / More options menu */
-video::-webkit-media-controls-overflow-button {
-  filter: brightness(1.1);
-}
-
-/* Enclosure (the entire controls area) */
+/* Rounded enclosure bottom */
 video::-webkit-media-controls-enclosure {
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  overflow: hidden;
-}
-
-/* Firefox-specific styling */
-@-moz-document url-prefix() {
-  video {
-    border-radius: 12px;
-  }
-}
-
-/* Video hover effect for controls visibility */
-video:hover::-webkit-media-controls-panel {
-  opacity: 1;
-}
-
-/* Accent color for progress/volume (Chrome 93+) */
-video {
-  accent-color: #3b82f6;
 }
 
 /* ========================================
