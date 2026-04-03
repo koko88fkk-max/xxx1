@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -2320,7 +2320,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
           ) : stats ? (
             <>
               {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gradient-to-br from-blue-600/20 to-blue-800/10 border border-blue-500/20 rounded-2xl p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="w-5 h-5 text-blue-400" />
@@ -2348,6 +2348,13 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                     <span className="text-zinc-400 text-xs">محظورين</span>
                   </div>
                   <p className="text-3xl font-bold text-white">{stats.bannedCount}</p>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-gradient-to-br from-cyan-600/20 to-teal-800/10 border border-cyan-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MonitorPlay className="w-5 h-5 text-cyan-400" />
+                    <span className="text-zinc-400 text-xs">زيارات الموقع</span>
+                  </div>
+                  <p className="text-3xl font-bold text-white">{stats.totalVisits?.toLocaleString() || 0}</p>
                 </motion.div>
               </div>
 
@@ -2449,6 +2456,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                       <thead>
                         <tr className="border-b border-white/10 bg-white/5">
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
+                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الدولة</th>
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الحالة</th>
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">آخر دخول</th>
                           <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ التسجيل</th>
@@ -2463,6 +2471,17 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                                 <Mail className="w-4 h-4 text-zinc-500 shrink-0" />
                                 <span className="text-white text-sm truncate max-w-[200px]">{u.email || 'غير معروف'}</span>
                               </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {u.country ? (
+                                <span className="inline-flex items-center gap-1.5 text-sm">
+                                  <img src={`https://flagcdn.com/20x15/${(u.countryCode || '').toLowerCase()}.png`} alt="" className="w-5 h-4 rounded-sm object-cover" style={{pointerEvents: 'auto'}} />
+                                  <span className="text-zinc-300">{u.country}</span>
+                                  {u.city && <span className="text-zinc-500 text-xs">({u.city})</span>}
+                                </span>
+                              ) : (
+                                <span className="text-zinc-600 text-xs">—</span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               {u.verifiedOrder ? (
@@ -2676,6 +2695,10 @@ export default function App() {
     
     // Initial loading screen timeout
     const timer = setTimeout(() => setAppLoading(false), 2000);
+
+    // 📈 Track site visit
+    trackSiteVisit();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(timer);

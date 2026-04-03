@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'يجب توفير ID الديسكورد وتوكن الحماية للوصول' });
   }
 
-  const BOT_TOKEN = process.env.BOT_TOKEN; 
+  const BOT_TOKEN = process.env.BOT_TOKEN;
   const GUILD_ID = process.env.GUILD_ID || '1396959491786018826';
   const ROLE_ID = process.env.ROLE_ID || '1397221350095192074';
   const FIREBASE_API_KEY = "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A";
@@ -34,8 +34,8 @@ export default async function handler(req, res) {
 
   if (!BOT_TOKEN) {
     console.error("FATAL: BOT_TOKEN is missing in Vercel environment variables");
-    return res.status(500).json({ 
-      error: "خطأ في السيرفر: التوكن الخاص بالبوت غير موجود. يرجى إضافته في Vercel (BOT_TOKEN)" 
+    return res.status(500).json({
+      error: "خطأ في السيرفر: التوكن الخاص بالبوت غير موجود. يرجى إضافته في Vercel (BOT_TOKEN)"
     });
   }
 
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     const isVIP = docRes.data.fields?.isVIP?.booleanValue;
     orderNumber = docRes.data.fields?.verifiedOrder?.stringValue || 'غير متوفر';
     lastRoleAssignTime = docRes.data.fields?.lastRoleAssign?.timestampValue || null;
-    
+
     if (isVIP !== true) {
       console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
       return res.status(403).json({ error: 'مرفوض: لا تملك مفتاح VIP فعّال للحصول على الرتبة الدائمة.' });
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
       console.error("Axios PUT to add member failed:", err.response?.data || err.message);
       return res.status(500).json({ error: 'فشل في إدخال العميل للسيرفر (ديسكورد رفض الطلب)', details: err.response?.data });
     }
-    
+
     // 2. لو كان العميل موجود مسبقاً في السيرفر، الديسكورد بيرد بـ 204 No Content
     if (response.status === 204) {
       console.log(`User already in guild. Assigning role ${ROLE_ID} directly.`);
@@ -148,8 +148,8 @@ export default async function handler(req, res) {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const user = userRes.data;
-        const avatarURL = user.avatar 
-          ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` 
+        const avatarURL = user.avatar
+          ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`
           : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
 
         const createdDate = new Date((Number(user.id) / 4194304) + 1420070400000);
@@ -171,7 +171,7 @@ export default async function handler(req, res) {
               { name: 'عمر الحساب', value: `\`${ageText}\``, inline: true },
               { name: 'التاريخ', value: `\`${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}\``, inline: true },
             ],
-            footer: { 
+            footer: {
               text: 'T3N Security System',
             },
           }]

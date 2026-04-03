@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A",
@@ -20,14 +20,37 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const provider = new GoogleAuthProvider();
 
+// 🌍 Detect user country/city from IP
+async function detectUserGeo(): Promise<{ country: string; city: string; countryCode: string } | null> {
+  try {
+    const res = await fetch('http://ip-api.com/json/?fields=status,country,countryCode,city');
+    const data = await res.json();
+    if (data.status === 'success') {
+      return { country: data.country, city: data.city, countryCode: data.countryCode };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loginWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
     
+    // Detect geo location
+    const geo = await detectUserGeo();
+    
     // Save or update user login in Firestore
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
+    
+    const geoData = geo ? {
+      country: geo.country,
+      city: geo.city,
+      countryCode: geo.countryCode
+    } : {};
     
     if (!docSnap.exists()) {
       await setDoc(userRef, {
@@ -35,12 +58,14 @@ export async function loginWithGoogle() {
         isVIP: false,
         verifiedOrder: null,
         createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString()
+        lastLoginAt: new Date().toISOString(),
+        ...geoData
       });
     } else {
       await setDoc(userRef, { 
         email: user.email,
-        lastLoginAt: new Date().toISOString() 
+        lastLoginAt: new Date().toISOString(),
+        ...geoData
       }, { merge: true });
     }
     
@@ -48,6 +73,33 @@ export async function loginWithGoogle() {
   } catch (error) {
     console.error("Error signing in with Google", error);
     return null;
+  }
+}
+
+// 📈 Track site visit (called once per page load)
+export async function trackSiteVisit() {
+  try {
+    const statsRef = doc(db, "siteStats", "visits");
+    await setDoc(statsRef, {
+      totalVisits: increment(1),
+      lastVisitAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (err) {
+    console.error('Failed to track visit:', err);
+  }
+}
+
+// 📈 Get total site visits
+export async function getSiteVisits(): Promise<number> {
+  try {
+    const statsRef = doc(db, "siteStats", "visits");
+    const snap = await getDoc(statsRef);
+    if (snap.exists()) {
+      return snap.data().totalVisits || 0;
+    }
+    return 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -339,14 +391,42 @@ export async function getAdminStats() {
     admins.push({ email: d.id, ...d.data(), role: 'مشرف' });
   });
 
+  // Get total site visits
+  const totalVisits = await getSiteVisits();
+
   return {
     totalUsers: users.length,
     vipUsers: vipCount,
     totalOrders: orders.length,
     bannedCount: banned.length,
+    totalVisits,
     users: users.sort((a, b) => (b.verifiedAt || b.lastLoginAt || '').localeCompare(a.verifiedAt || a.lastLoginAt || '')),
     orders: orders.sort((a, b) => (b.activatedAt || b.createdAt || '').localeCompare(a.activatedAt || a.createdAt || '')),
     banned,
     admins,
   };
+}
+
+// ==========================================
+// 🔧 MAINTENANCE MODE
+// ==========================================
+
+// Toggle maintenance mode on/off
+export async function toggleMaintenance(enabled: boolean, message?: string) {
+  const ref = doc(db, "settings", "maintenance");
+  await setDoc(ref, {
+    enabled,
+    message: message || 'الموقع تحت الصيانة حالياً، نرجع لكم قريب!',
+    updatedAt: new Date().toISOString()
+  });
+}
+
+// Get current maintenance status
+export async function getMaintenanceStatus(): Promise<{ enabled: boolean; message: string }> {
+  const ref = doc(db, "settings", "maintenance");
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    return { enabled: snap.data().enabled || false, message: snap.data().message || '' };
+  }
+  return { enabled: false, message: '' };
 }
