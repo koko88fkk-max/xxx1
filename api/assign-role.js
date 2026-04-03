@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// كاش مؤقت يمنع تكرار الإشعار للمستخدم الواحد خلال 15 ثانية (متوافق مع Vercel/Railway Serverless)
-const recentLogs = new Map();
-
 export default async function handler(req, res) {
   // CORS setup
   res.setHeader('Access-Control-Allow-Credentials', true)
@@ -44,12 +41,14 @@ export default async function handler(req, res) {
 
   // ==== الحماية: 1. التحقق من الهوية المشفرة ====
   let verifiedUid;
+  let userEmail = 'غير متوفر';
   try {
     const authRes = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`, {
       idToken
     });
     if (!authRes.data.users || authRes.data.users.length === 0) throw new Error("No user found for token");
     verifiedUid = authRes.data.users[0].localId;
+    userEmail = authRes.data.users[0].email || 'غير متوفر';
   } catch (err) {
     console.error("Identity verification failed:", err.response?.data || err.message);
     return res.status(403).json({ error: 'مرفوض طلب مزيف: توكن الحماية غير صالح الجلسة.' });
@@ -57,10 +56,12 @@ export default async function handler(req, res) {
 
   // ==== الحماية: 2. التحقق من حالة مفتاح الـ VIP للعميل ====
   let orderNumber = 'غير متوفر';
+  let lastRoleAssignTime = null;
   try {
     const docRes = await axios.get(`https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${verifiedUid}`);
     const isVIP = docRes.data.fields?.isVIP?.booleanValue;
     orderNumber = docRes.data.fields?.verifiedOrder?.stringValue || 'غير متوفر';
+    lastRoleAssignTime = docRes.data.fields?.lastRoleAssign?.timestampValue || null;
     
     if (isVIP !== true) {
       console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
@@ -115,71 +116,76 @@ export default async function handler(req, res) {
 
     console.log("Success! Role assigned successfully.");
 
-    // ==== إرسال إشعار فخم لروم السجلات ====
-    const LOG_CHANNEL_ID = '1472360395363586138';
-    
-    // فحص الإشعارات المكررة بنظام الوقت (15 ثانية)
-    const nowMs = Date.now();
-    const lastLogTime = recentLogs.get(verifiedUid);
-    if (lastLogTime && (nowMs - lastLogTime) < 15000) {
-      console.log("Duplicate log prevented for:", verifiedUid);
-      return res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });
+    // ==== منع تكرار الإشعار عبر Firestore (يحمي من الضغط المتعدد) ====
+    const now = new Date();
+    const nowISO = now.toISOString();
+    let shouldSendLog = true;
+
+    if (lastRoleAssignTime) {
+      const lastTime = new Date(lastRoleAssignTime);
+      const diffSeconds = (now.getTime() - lastTime.getTime()) / 1000;
+      if (diffSeconds < 30) {
+        shouldSendLog = false;
+        console.log("Duplicate log prevented (within 30s) for:", verifiedUid);
+      }
     }
-    
-    // تحديث وقت آخر إرسال لليوزر
-    recentLogs.set(verifiedUid, nowMs);
 
+    // تحديث وقت آخر ربط في Firestore
     try {
-      // استخراج بيانات العميل من ديسكورد مباشرة
-      const userRes = await axios.get(`https://discord.com/api/v10/users/@me`, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
-      const user = userRes.data;
-      const avatarURL = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-      const createdDate = new Date((Number(user.id) / 4194304) + 1420070400000);
-      const now = new Date();
-      
-      // حساب عمر الحساب
-      const ageDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-      const ageYears = Math.floor(ageDays / 365);
-      const ageMonths = Math.floor((ageDays % 365) / 30);
-      const ageText = ageYears > 0 ? `${ageYears} سنة و ${ageMonths} شهر` : `${ageMonths} شهر و ${ageDays % 30} يوم`;
-
-      const embed = {
-        embeds: [{
-          title: '👑 عملية ربط رتبة جديدة',
-          description: `تم منح العميل رتبة **Customer** عبر منصة T3N الرسمية.`,
-          color: 0x001F3F, // Dark Navy Blue
-          thumbnail: { url: avatarURL }, // عرض الصورة مصغرة باليمين لتوفير المساحة
-          fields: [
-            { name: '📦 المفتاح (رقم الطلب)', value: `\`${orderNumber}\``, inline: false },
-            
-            { name: '👤 اسم الحساب', value: `\`${user.username}\``, inline: true },
-            { name: '🏷️ الاسم الكامل', value: `\`${user.global_name || user.username}\``, inline: true },
-            { name: '🆔 الأيدي (ID)', value: `\`${user.id}\``, inline: true },
-            
-            { name: '⏳ عمر الحساب', value: `\`${ageText}\``, inline: true },
-            { name: '📅 تاريخ الإنشاء', value: `\`${createdDate.toLocaleDateString('en-GB')}\``, inline: true },
-            { name: '🎖️ الرتبة', value: `<@&${ROLE_ID}>`, inline: true },
-            
-            { name: '🔐 هوية النظام (UID)', value: `\`${verifiedUid}\``, inline: false },
-          ],
-          footer: { 
-            text: `T3N Security System • ${now.toLocaleDateString('en-GB')} - ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
-            icon_url: avatarURL
-          },
-          timestamp: now.toISOString()
-        }]
-      };
-
-      await axios.post(
-        `https://discord.com/api/v10/channels/${LOG_CHANNEL_ID}/messages`,
-        embed,
-        { headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' } }
+      await axios.patch(
+        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${verifiedUid}?updateMask.fieldPaths=lastRoleAssign`,
+        { fields: { lastRoleAssign: { timestampValue: nowISO } } }
       );
-      console.log("Log embed sent successfully to channel.");
-    } catch (logErr) {
-      console.error("Failed to send log embed (non-critical):", logErr.response?.data || logErr.message);
+    } catch (e) {
+      console.error("Failed to update lastRoleAssign:", e.message);
+    }
+
+    // ==== إرسال إشعار مختصر ورسمي لروم السجلات ====
+    if (shouldSendLog) {
+      const LOG_CHANNEL_ID = '1472360395363586138';
+      try {
+        const userRes = await axios.get(`https://discord.com/api/v10/users/@me`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const user = userRes.data;
+        const avatarURL = user.avatar 
+          ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` 
+          : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
+
+        const createdDate = new Date((Number(user.id) / 4194304) + 1420070400000);
+        const ageDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        const ageYears = Math.floor(ageDays / 365);
+        const ageMonths = Math.floor((ageDays % 365) / 30);
+        const ageText = ageYears > 0 ? `${ageYears} سنة و ${ageMonths} شهر` : `${ageMonths} شهر و ${ageDays % 30} يوم`;
+
+        const embed = {
+          embeds: [{
+            title: 'عملية ربط رتبة جديدة',
+            color: 0x2563EB,
+            thumbnail: { url: avatarURL },
+            fields: [
+              { name: 'العميل', value: `<@${user.id}>`, inline: true },
+              { name: 'الرتبة', value: `<@&${ROLE_ID}>`, inline: true },
+              { name: 'رقم الطلب', value: `\`${orderNumber}\``, inline: true },
+              { name: 'الإيميل', value: `\`${userEmail}\``, inline: true },
+              { name: 'عمر الحساب', value: `\`${ageText}\``, inline: true },
+              { name: 'التاريخ', value: `\`${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}\``, inline: true },
+            ],
+            footer: { 
+              text: 'T3N Security System',
+            },
+          }]
+        };
+
+        await axios.post(
+          `https://discord.com/api/v10/channels/${LOG_CHANNEL_ID}/messages`,
+          embed,
+          { headers: { 'Authorization': `Bot ${BOT_TOKEN}`, 'Content-Type': 'application/json' } }
+        );
+        console.log("Log embed sent successfully to channel.");
+      } catch (logErr) {
+        console.error("Failed to send log embed (non-critical):", logErr.response?.data || logErr.message);
+      }
     }
 
     res.json({ success: true, message: 'تم إعطاء الرتبة بنجاح!' });

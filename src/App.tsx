@@ -402,7 +402,7 @@ function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 1 }}
-          className="mt-20 flex justify-center w-full text-zinc-500 animate-bounce translate-x-3 md:translate-x-4"
+          className="mt-20 flex justify-center w-full text-zinc-500 animate-bounce"
         >
           <ChevronDown className="w-8 h-8" />
         </motion.div>
