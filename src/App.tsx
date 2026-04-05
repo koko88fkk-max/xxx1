@@ -481,6 +481,14 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                   onSubmit={handleVerify}
                   className="flex flex-col items-center w-full mx-auto relative z-10"
                 >
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6">
+                    <Package className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
+                  <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
+                    قم بإدخال رقم الطلب الخاص بك والمكون من 9 أرقام لاستلام مشترياتك فوراً.
+                  </p>
+
                   <div className="w-full mb-4 relative">
                     <input
                       type="text"
