@@ -486,7 +486,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                   </div>
                   <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
                   <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                    قم بإدخال رقم الطلب الخاص بك والمكون من 9 أرقام لاستلام مشترياتك فوراً.
+                    قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
                   </p>
 
                   <div className="w-full mb-4 relative">
