@@ -363,11 +363,11 @@ function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
             <motion.button 
               whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59,130,246,0.3)" }}
               whileTap={{ scale: 0.95 }}
-              onClick={onSiteGuideClick}
+              onClick={() => document.getElementById('delivery')?.scrollIntoView({ behavior: 'smooth' })}
               className="px-8 py-4 bg-blue-600 border border-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all w-full"
             >
-              <MonitorPlay className="w-5 h-5" />
-              شرح بوابة تعن
+              <Hash className="w-5 h-5" />
+              استلام الطلب
             </motion.button>
             
             {/* Store and Discord Buttons */}
@@ -465,150 +465,188 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           <p className="text-zinc-400 text-lg">أدخل رقم الطلب من سلّة لاستلام الملفات والحصول على رتبتك في ديسكورد</p>
         </motion.div>
 
-        <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-6xl mx-auto">
+          {/* Right Side: Form (Order 2 on mobile, 1 on Desktop RTL) */}
+          <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full flex flex-col justify-center order-2 lg:order-1">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
 
-          <AnimatePresence mode="wait">
-            {status === 'idle' || status === 'error' ? (
-              <motion.form
-                key="form"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                onSubmit={handleVerify}
-                className="flex flex-col items-center max-w-md mx-auto relative z-10"
-              >
-                <div className="w-full mb-4 relative">
-                  <input
-                    type="text"
-                    value={orderInput}
-                    onChange={(e) => {
-                      setOrderInput(e.target.value);
-                      if (status === 'error') setStatus('idle');
-                    }}
-                    placeholder="أدخل رقم الطلب"
-                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
-                    dir="ltr"
-                  />
-                </div>
-
-                {status === 'error' && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
-                  >
-                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                    <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
-                  </motion.div>
-                )}
-
-                <motion.button
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={!orderInput.trim()}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30"
+            <AnimatePresence mode="wait">
+              {status === 'idle' || status === 'error' ? (
+                <motion.form
+                  key="form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  onSubmit={handleVerify}
+                  className="flex flex-col items-center w-full mx-auto relative z-10"
                 >
-                  <Hash className="w-6 h-6" />
-                  تفعيل رقم الطلب
-                </motion.button>
-              </motion.form>
-            ) : status === 'loading' ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-12 relative z-10"
-              >
-                <div className="w-20 h-20 relative mb-8">
-                  <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-                  <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
-                  <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
-                </div>
-                <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التحقق من رقم الطلب...</p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center text-center relative z-10"
-              >
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", bounce: 0.5 }}
-                  className="w-24 h-24 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
-                >
-                  <CheckCircle2 className="w-12 h-12" />
-                </motion.div>
-                <h3 className="text-3xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
-                <p className="text-zinc-400 mb-2 text-lg">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
-                <p className="text-emerald-400 text-sm mb-10 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك بشكل دائم</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-black/40 border border-white/10 rounded-3xl p-8 flex flex-col items-center shadow-lg"
-                  >
-                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-                      <FileArchive className="w-8 h-8 text-blue-400" />
-                    </div>
-                    <h4 className="font-bold text-xl mb-3 text-white">ملفات الطلب</h4>
-                    <p className="text-sm text-zinc-400 mb-8 leading-relaxed">ملف مضغوط (RAR) يحتوي على طلبك مع شرح الاستخدام والترتيب.</p>
-                    <motion.button 
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = '/discord.gg.t3n.rar';
-                        link.download = 'discord.gg.t3n.rar';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                  <div className="w-full mb-4 relative">
+                    <input
+                      type="text"
+                      value={orderInput}
+                      onChange={(e) => {
+                        setOrderInput(e.target.value);
+                        if (status === 'error') setStatus('idle');
                       }}
-                      onContextMenu={(e) => e.preventDefault()}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="mt-auto w-full bg-white text-black hover:bg-zinc-200 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                    >
-                      <Download className="w-5 h-5" />
-                      تحميل الملف
-                    </motion.button>
-                  </motion.div>
+                      placeholder="أدخل رقم الطلب"
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                      dir="ltr"
+                    />
+                  </div>
 
-                  <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="bg-black/40 border border-white/10 rounded-3xl p-8 flex flex-col items-center shadow-lg"
-                  >
-                    <div className="w-16 h-16 bg-[#5865F2]/10 rounded-2xl flex items-center justify-center mb-6 border border-[#5865F2]/20">
-                      <Server className="w-8 h-8 text-[#5865F2]" />
-                    </div>
-                    <h4 className="font-bold text-xl mb-3 text-white">رتبة ديسكورد</h4>
-                    <p className="text-sm text-zinc-400 mb-8 leading-relaxed">احصل على رتبة <span className="text-zinc-200 font-mono bg-white/5 px-1 rounded">Customer</span> في سيرفرنا للوصول للدعم.</p>
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => window.location.href = DISCORD_OAUTH_URL}
-                      onContextMenu={(e) => e.preventDefault()}
-                      className="mt-auto w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md border-t border-white/20"
+                  {status === 'error' && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
                     >
-                      <MessageCircle className="w-5 h-5" />
-                      ربط الحساب وإستلام الرتبة
-                    </motion.button>
-                  </motion.div>
-                </div>
-                
-                <button 
-                  onClick={() => { setStatus('idle'); setOrderInput(''); }}
-                  className="mt-10 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
+                      <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
+                    </motion.div>
+                  )}
+
+                  <motion.button
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={!orderInput.trim()}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full"
+                  >
+                    <Hash className="w-6 h-6" />
+                    تفعيل رقم الطلب
+                  </motion.button>
+                </motion.form>
+              ) : status === 'loading' ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
                 >
-                  تفعيل رقم طلب آخر
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </TiltCard>
+                  <div className="w-20 h-20 relative mb-8">
+                    <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+                    <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
+                  </div>
+                  <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التحقق من رقم الطلب...</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center text-center relative z-10 w-full"
+                >
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                  >
+                    <CheckCircle2 className="w-10 h-10" />
+                  </motion.div>
+                  <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
+                  <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
+                  <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك بشكل دائم</p>
+
+                  <div className="flex flex-col gap-4 w-full">
+                    <motion.div 
+                      whileHover={{ y: -2 }}
+                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                          <FileArchive className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div className="text-right flex-1">
+                          <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
+                          <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/discord.gg.t3n.rar';
+                          link.download = 'discord.gg.t3n.rar';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <Download className="w-5 h-5" />
+                        تحميل الملف
+                      </motion.button>
+                    </motion.div>
+
+                    <motion.div 
+                      whileHover={{ y: -2 }}
+                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center border border-[#5865F2]/20 shrink-0">
+                          <Server className="w-6 h-6 text-[#5865F2]" />
+                        </div>
+                        <div className="text-right flex-1">
+                          <h4 className="font-bold text-lg text-white">رتبة ديسكورد</h4>
+                          <p className="text-xs text-zinc-400 mt-1">احصل على الرتبة في سيرفرنا للدعم.</p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => window.location.href = DISCORD_OAUTH_URL}
+                        onContextMenu={(e) => e.preventDefault()}
+                        className="w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        إستلام الرتبة
+                      </motion.button>
+                    </motion.div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setStatus('idle'); setOrderInput(''); }}
+                    className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
+                  >
+                    تفعيل رقم طلب آخر
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TiltCard>
+
+          {/* Left Side: Video (Order 1 on mobile, 2 on Desktop RTL) */}
+          <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full flex flex-col items-center justify-center order-1 lg:order-2">
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6">
+                <MonitorPlay className="w-8 h-8 text-blue-400" />
+              </div>
+              <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">فيديو الشرح</h3>
+              <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-md">
+                شاهد هذا المقطع القصير لمعرفة كيفية تفعيل رقم طلبك واستلام الملفات بطريقة صحيحة وبكل سهولة.
+              </p>
+              <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(37,99,235,0.2)] bg-black/50">
+                <video 
+                  controls 
+                  controlsList="nodownload" 
+                  onContextMenu={(e) => e.preventDefault()} 
+                  poster="/site-guide-poster.jpg" 
+                  className="w-full aspect-video object-contain outline-none bg-black" 
+                  playsInline
+                  preload="metadata"
+                >
+                  <source src="/site-guide-vid.mp4" type="video/mp4" />
+                  متصفحك لا يدعم تشغيل الفيديو.
+                </video>
+              </div>
+            </div>
+          </TiltCard>
+        </div>
       </div>
     </section>
   );
