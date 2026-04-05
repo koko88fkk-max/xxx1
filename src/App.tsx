@@ -2862,9 +2862,9 @@ export default function App() {
                     const errData = await backendRes.json().catch(() => ({}));
                     console.error('Backend error:', backendRes.status, errData);
                     if (backendRes.status === 429) {
-                      setToast({ type: 'error', message: 'طلبات كثيرة، يرجى المحاولة بعد 30 ثانية' });
+                      setToast({ type: 'error', message: errData.error || 'طلبات كثيرة، يرجى المحاولة بعد 30 ثانية' });
                     } else {
-                      setToast({ type: 'error', message: 'فشل في الاتصال بسيرفر الرتب. يرجى المحاولة لاحقاً' });
+                      setToast({ type: 'error', message: errData.error || 'فشل في الاتصال بسيرفر الرتب. يرجى المحاولة لاحقاً' });
                     }
                   }
                 } else {
