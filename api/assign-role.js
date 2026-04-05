@@ -1,5 +1,10 @@
 import axios from 'axios';
 
+// In-memory IP Cache for Serverless Rate Limiting
+const ipCache = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 دقيقة
+const MAX_REQUESTS_PER_IP = 15; // 15 طلب كحد أقصى في الدقيقة
+
 export default async function handler(req, res) {
   // CORS setup (Secure Domain Whitelist)
   const origin = req.headers.origin;
@@ -37,6 +42,25 @@ export default async function handler(req, res) {
   if (!discordId || !accessToken || !idToken) {
     console.error("Missing discordId, accessToken, or idToken in body");
     return res.status(400).json({ error: 'يجب توفير ID الديسكورد وتوكن الحماية للوصول' });
+  }
+
+  // ==== الحماية: 0. Rate Limiting (حماية من هجمات الـ DDoS والـ Brute Force للـ API) ====
+  const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const currentTime = Date.now();
+  
+  if (ipCache.has(clientIp)) {
+    const ipData = ipCache.get(clientIp);
+    if (currentTime - ipData.startTime < RATE_LIMIT_WINDOW) {
+      if (ipData.count >= MAX_REQUESTS_PER_IP) {
+        console.warn(`[RATE LIMIT ALARM] Blocked IP: ${clientIp}`);
+        return res.status(429).json({ error: 'تم حظر طلباتك مؤقتاً. جرب بعد دقيقة.' });
+      }
+      ipData.count++;
+    } else {
+      ipCache.set(clientIp, { count: 1, startTime: currentTime });
+    }
+  } else {
+    ipCache.set(clientIp, { count: 1, startTime: currentTime });
   }
 
   const BOT_TOKEN = process.env.BOT_TOKEN;
@@ -84,6 +108,16 @@ export default async function handler(req, res) {
     if (isVIP !== true) {
       console.error(`User ${verifiedUid} attempted assignment but isVIP is false.`);
       return res.status(403).json({ error: 'مرفوض: لا تملك مفتاح VIP فعّال للحصول على الرتبة الدائمة.' });
+    }
+
+    // ==== الحماية: 2.5 منع السبام للمستخدم الصالح (User Rate Limit) ====
+    if (lastRoleAssignTime) {
+      const lastTime = new Date(lastRoleAssignTime);
+      const diffSeconds = (new Date().getTime() - lastTime.getTime()) / 1000;
+      if (diffSeconds < 60) {
+         console.warn(`[SPAM PREVENTION] User ${verifiedUid} clicked too fast.`);
+         return res.status(429).json({ error: 'لقد قمت بطلب الرتبة للتو! يرجى الانتظار دقيقة قبل المحاولة مرة أخرى.' });
+      }
     }
   } catch (err) {
     console.error("Firestore user verification failed:", err.response?.data || err.message);

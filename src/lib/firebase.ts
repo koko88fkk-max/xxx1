@@ -308,6 +308,24 @@ export async function getAllOrders() {
 // 🔒 ADMIN ACTIONS
 // ==========================================
 
+// 📋 Admin Actions Logger
+async function logAdminAction(actionType: string, details: string) {
+  try {
+    const authUser = auth.currentUser;
+    if (!authUser) return;
+    const logRef = doc(collection(db, "auditLogs"));
+    await setDoc(logRef, {
+      action: actionType,
+      details: details,
+      adminEmail: authUser.email,
+      adminUid: authUser.uid,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error("Failed to log admin action:", err);
+  }
+}
+
 // 🚫 Ban a user
 export async function banUser(uid: string, email: string, reason: string) {
   const banRef = doc(db, "bannedUsers", uid);
@@ -318,6 +336,7 @@ export async function banUser(uid: string, email: string, reason: string) {
   });
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, { isVIP: false, banned: true }, { merge: true });
+  await logAdminAction("BAN_USER", `Banned user ${email} (UID: ${uid}) for: ${reason}`);
 }
 
 // ✅ Unban a user
@@ -326,12 +345,14 @@ export async function unbanUser(uid: string) {
   await deleteDoc(banRef);
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, { banned: false }, { merge: true });
+  await logAdminAction("UNBAN_USER", `Removed ban from user UID: ${uid}`);
 }
 
 // ❌ Remove VIP from user
 export async function removeVIP(uid: string) {
   const userRef = doc(db, "users", uid);
   await setDoc(userRef, { isVIP: false }, { merge: true });
+  await logAdminAction("REMOVE_VIP", `Removed VIP status from user UID: ${uid}`);
 }
 
 // 🗑️ Delete user data completely
@@ -340,6 +361,7 @@ export async function deleteUserData(uid: string) {
   await deleteDoc(userRef);
   const banRef = doc(db, "bannedUsers", uid);
   await deleteDoc(banRef);
+  await logAdminAction("DELETE_USER", `Deleted all data for user UID: ${uid}`);
 }
 
 // 👑 Add another admin
@@ -349,6 +371,7 @@ export async function addAdminUser(email: string) {
     addedAt: new Date().toISOString(),
     addedBy: MAIN_ADMIN_EMAIL
   });
+  await logAdminAction("ADD_ADMIN", `Added new admin: ${email}`);
 }
 
 // 🗑️ Remove an admin
@@ -356,6 +379,7 @@ export async function removeAdminUser(email: string) {
   if (email === MAIN_ADMIN_EMAIL) return;
   const adminRef = doc(db, "admins", email);
   await deleteDoc(adminRef);
+  await logAdminAction("REMOVE_ADMIN", `Removed admin access for: ${email}`);
 }
 
 // 📊 Admin: Get dashboard statistics
