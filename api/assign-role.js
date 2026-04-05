@@ -66,8 +66,8 @@ export default async function handler(req, res) {
   const BOT_TOKEN = process.env.BOT_TOKEN;
   const GUILD_ID = process.env.GUILD_ID || '1396959491786018826';
   const ROLE_ID = process.env.ROLE_ID || '1397221350095192074';
-  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
-  const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "t3n-stor-cd7d7";
+  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
+  const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || "t3n-stor-cd7d7";
 
   if (!FIREBASE_API_KEY) {
     console.error("FATAL: FIREBASE_API_KEY is missing in Vercel environment variables");
