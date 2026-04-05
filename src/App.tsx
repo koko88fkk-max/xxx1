@@ -465,12 +465,13 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           <p className="text-zinc-400 text-lg">أدخل رقم الطلب من سلّة لاستلام الملفات والحصول على رتبتك في ديسكورد</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
           {/* Right Side: Form (Order 2 on mobile, 1 on Desktop RTL) */}
-          <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full flex flex-col justify-center order-2 lg:order-1">
+          <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
 
-            <AnimatePresence mode="wait">
+            <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
+              <AnimatePresence mode="wait">
               {status === 'idle' || status === 'error' ? (
                 <motion.form
                   key="form"
@@ -617,7 +618,8 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                   </button>
                 </motion.div>
               )}
-            </AnimatePresence>
+              </AnimatePresence>
+            </div>
           </TiltCard>
 
           {/* Left Side: Video (Order 1 on mobile, 2 on Desktop RTL) */}
