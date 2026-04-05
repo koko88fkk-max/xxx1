@@ -1,9 +1,22 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
-  // CORS setup
+  // CORS setup (Secure Domain Whitelist)
+  const origin = req.headers.origin;
+  const isAllowedOrigin = origin && (
+    origin === 'https://t3n-stor.com' || 
+    origin === 'http://localhost:5173' || 
+    origin.endsWith('.vercel.app')
+  );
+  
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // Fallback strict domain
+    res.setHeader('Access-Control-Allow-Origin', 'https://t3n-stor.com');
+  }
+
   res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
   res.setHeader(
     'Access-Control-Allow-Headers',
@@ -29,8 +42,13 @@ export default async function handler(req, res) {
   const BOT_TOKEN = process.env.BOT_TOKEN;
   const GUILD_ID = process.env.GUILD_ID || '1396959491786018826';
   const ROLE_ID = process.env.ROLE_ID || '1397221350095192074';
-  const FIREBASE_API_KEY = "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A";
-  const FIREBASE_PROJECT_ID = "t3n-stor-cd7d7";
+  const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+  const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "t3n-stor-cd7d7";
+
+  if (!FIREBASE_API_KEY) {
+    console.error("FATAL: FIREBASE_API_KEY is missing in Vercel environment variables");
+    return res.status(500).json({ error: "خطأ أمني: الـ API Key الخاص بـ Firebase غير موجود في السيرفر." });
+  }
 
   if (!BOT_TOKEN) {
     console.error("FATAL: BOT_TOKEN is missing in Vercel environment variables");
