@@ -454,7 +454,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
 
   return (
     <section id="delivery" className="py-20 md:py-28 relative z-10">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
