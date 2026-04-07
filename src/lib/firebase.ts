@@ -454,3 +454,15 @@ export async function getMaintenanceStatus(): Promise<{ enabled: boolean; messag
   }
   return { enabled: false, message: '' };
 }
+
+// 📦 Check Order Status
+export async function checkOrderStatus(orderId: string): Promise<any> {
+  const cleaned = orderId.trim();
+  if (!isValidOrderFormat(cleaned)) throw new Error('يرجى التحقق من صياغة رقم الطلب');
+  const orderRef = doc(db, "orders", cleaned);
+  const snap = await getDoc(orderRef);
+  if (!snap.exists()) {
+    return { status: 'unused' };
+  }
+  return { status: 'used', ...snap.data() };
+}

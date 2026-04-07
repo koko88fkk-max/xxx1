@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit } from './lib/firebase';
+import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search } from 'lucide-react';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -411,10 +411,146 @@ function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
   );
 }
 
+function CustomVideoPlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState('0:00');
+  const [durationText, setDurationText] = useState('0:00');
+  const [isMuted, setIsMuted] = useState(false);
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return '0:00';
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) videoRef.current.pause();
+      else videoRef.current.play();
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      const dur = videoRef.current.duration;
+      setProgress((current / dur) * 100);
+      setCurrentTime(formatTime(current));
+    }
+  };
+
+  const handleLoadedData = () => {
+    if (videoRef.current) {
+      setDurationText(formatTime(videoRef.current.duration));
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+
+  const toggleFullScreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (videoRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      videoRef.current.currentTime = pos * videoRef.current.duration;
+    }
+  };
+
+  return (
+    <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(37,99,235,0.2)] bg-black/80 relative group">
+      <video
+        ref={videoRef}
+        src="/site-guide-vid.mp4"
+        poster="/site-guide-poster.jpg"
+        className="w-full aspect-video object-contain outline-none bg-black cursor-pointer"
+        onClick={togglePlay}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedData={handleLoadedData}
+        onContextMenu={(e) => e.preventDefault()}
+        controlsList="nodownload"
+        playsInline
+        preload="metadata"
+      />
+      
+      {/* Custom Control Bar */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-2">
+        {/* Progress Bar */}
+        <div 
+          className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer relative"
+          onClick={handleSeek}
+        >
+          <div 
+            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full" 
+            style={{ width: `${progress}%` }} 
+          />
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow border border-black/20 transition-transform scale-0 group-hover:scale-100"
+            style={{ left: `calc(${progress}% - 6px)` }}
+          />
+        </div>
+        
+        {/* Controls */}
+        <div className="flex items-center justify-between text-white mt-1">
+          <div className="flex items-center gap-4">
+            <button onClick={togglePlay} className="hover:text-blue-400 transition-colors">
+              {isPlaying ? <div className="w-4 h-4 bg-white hover:bg-blue-400" style={{ clipPath: 'polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 60% 0, 90% 0, 90% 100%, 60% 100%)' }} /> : <Play className="w-5 h-5 fill-current" />}
+            </button>
+            <span className="text-xs font-mono opacity-80" dir="ltr">{currentTime} / {durationText}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button onClick={toggleMute} className="hover:text-blue-400 transition-colors">
+              {isMuted ? <span className="text-lg">🔇</span> : <span className="text-lg">🔊</span>}
+            </button>
+            <button onClick={toggleFullScreen} className="hover:text-blue-400 transition-colors">
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Big Play Button Overlay */}
+      {!isPlaying && (
+        <button 
+          onClick={togglePlay}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-blue-600/80 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-blue-500 hover:scale-110 transition-all border border-white/20 shadow-xl"
+        >
+          <Play className="w-6 h-6 ml-1 fill-current" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => void, user?: User | null }) {
+  const [activeTab, setActiveTab] = useState<'activate'|'check'>('activate');
+  
+  // Activate State
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Check State
+  const [checkInput, setCheckInput] = useState('');
+  const [checkStatus, setCheckStatus] = useState<'idle' | 'loading' | 'result' | 'error'>('idle');
+  const [checkResult, setCheckResult] = useState<any>(null);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -428,7 +564,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
 
     if (!isValidOrderFormat(orderInput)) {
       setStatus('error');
-      setErrorMsg('رقم الطلب غير صحيح، تأكد من إدخال رقم الطلب الصحيح');
+      setErrorMsg('رقم الطلب غير صحيح، يجب أن يتكون من 9 أرقام ويبدأ بـ 2');
       return;
     }
 
@@ -452,6 +588,27 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
     }
   };
 
+  const handleCheck = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkInput.trim()) return;
+    
+    if (!isValidOrderFormat(checkInput)) {
+      setCheckStatus('error');
+      setErrorMsg('الرجاء التأكد من كتابة رقم الطلب بشكل صحيح (9 أرقام)');
+      return;
+    }
+
+    setCheckStatus('loading');
+    try {
+      const res = await checkOrderStatus(checkInput);
+      setCheckResult(res);
+      setCheckStatus('result');
+    } catch (err: any) {
+      setCheckStatus('error');
+      setErrorMsg(err.message || 'حدث خطأ أثناء الاستعلام');
+    }
+  }
+
   return (
     <section id="delivery" className="py-20 md:py-28 relative z-10">
       <div className="container mx-auto px-4">
@@ -461,8 +618,8 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">تفعيل رقم الطلب</h2>
-          <p className="text-zinc-400 text-lg">أدخل رقم الطلب من سلّة لاستلام الملفات والحصول على رتبتك في ديسكورد</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">بوابة الطلبات</h2>
+          <p className="text-zinc-400 text-lg">من هنا يمكنك تفعيل طلبك للارتباط بحسابك أو الاستعلام عن حالة الطلبات</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
@@ -470,190 +627,330 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
 
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
-              <AnimatePresence mode="wait">
-              {status === 'idle' || status === 'error' ? (
-                <motion.form
-                  key="form"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  onSubmit={handleVerify}
-                  className="flex flex-col items-center w-full mx-auto relative z-10"
+            <div className="flex flex-col items-center justify-start h-full min-h-[300px]">
+              
+              {/* Tabs Switcher */}
+              <div className="flex w-full mb-8 bg-black/40 border border-white/10 rounded-2xl p-1 relative z-20">
+                <button 
+                  onClick={() => setActiveTab('activate')} 
+                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'activate' ? 'bg-blue-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
                 >
-                  <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6">
-                    <Package className="w-8 h-8 text-blue-400" />
-                  </div>
-                  <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
-                  <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                    قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
-                  </p>
+                  تفعيل الطلب
+                </button>
+                <button 
+                  onClick={() => setActiveTab('check')} 
+                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'check' ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  استعلام عن طلب
+                </button>
+              </div>
 
-                  <div className="w-full mb-4 relative">
-                    <input
-                      type="text"
-                      value={orderInput}
-                      onChange={(e) => {
-                        setOrderInput(e.target.value);
-                        if (status === 'error') setStatus('idle');
-                      }}
-                      placeholder="أدخل رقم الطلب"
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
-                      dir="ltr"
-                    />
-                  </div>
+              {activeTab === 'activate' ? (
+                <AnimatePresence mode="wait">
+                {status === 'idle' || status === 'error' ? (
+                  <motion.form
+                    key="form"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    onSubmit={handleVerify}
+                    className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
+                  >
+                    <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+                      <Package className="w-8 h-8 text-blue-400" />
+                    </div>
+                    <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
+                    <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
+                      قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
+                    </p>
 
-                  {status === 'error' && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
+                    <div className="w-full mb-4 relative">
+                      <input
+                        type="text"
+                        value={orderInput}
+                        onChange={(e) => {
+                          setOrderInput(e.target.value);
+                          if (status === 'error') setStatus('idle');
+                        }}
+                        placeholder="أدخل رقم الطلب (مثال: 24xxxxxxx)"
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    {status === 'error' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
+                      >
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                        <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
+                      </motion.div>
+                    )}
+
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={!orderInput.trim()}
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full"
                     >
-                      <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                      <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
+                      <Hash className="w-6 h-6" />
+                      تفعيل رقم الطلب
+                    </motion.button>
+                  </motion.form>
+                ) : status === 'loading' ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
+                  >
+                    <div className="w-20 h-20 relative mb-8">
+                      <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+                      <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
+                      <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
+                    </div>
+                    <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التفعيل وبناء الصلاحيات...</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center text-center relative z-10 w-full"
+                  >
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", bounce: 0.5 }}
+                      className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                    >
+                      <CheckCircle2 className="w-10 h-10" />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
+                    <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
+                    <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك للأبد</p>
+
+                    <div className="flex flex-col gap-4 w-full">
+                      <motion.div 
+                        whileHover={{ y: -2 }}
+                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                            <FileArchive className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-right flex-1">
+                            <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
+                            <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
+                          </div>
+                        </div>
+                        <motion.button 
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = '/discord.gg.t3n.rar';
+                            link.download = 'discord.gg.t3n.rar';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          onContextMenu={(e) => e.preventDefault()}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <Download className="w-5 h-5" />
+                          تحميل الملفات
+                        </motion.button>
+                      </motion.div>
+
+                      <motion.div 
+                        whileHover={{ y: -2 }}
+                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center border border-[#5865F2]/20 shrink-0">
+                            <Server className="w-6 h-6 text-[#5865F2]" />
+                          </div>
+                          <div className="text-right flex-1">
+                            <h4 className="font-bold text-lg text-white">رتبة ديسكورد</h4>
+                            <p className="text-xs text-zinc-400 mt-1">اربط حسابك بالسيرفر للوصول للدعم.</p>
+                          </div>
+                        </div>
+                        <motion.button 
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => window.location.href = DISCORD_OAUTH_URL}
+                          onContextMenu={(e) => e.preventDefault()}
+                          className="w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          ربط الحساب وإستلام الرتبة
+                        </motion.button>
+                      </motion.div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => { setStatus('idle'); setOrderInput(''); }}
+                      className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
+                    >
+                      تفعيل رقم طلب آخر
+                    </button>
+                  </motion.div>
+                )}
+                </AnimatePresence>
+              ) : (
+                /* Check Order Tab */
+                <AnimatePresence mode="wait">
+                  {checkStatus === 'idle' || checkStatus === 'error' ? (
+                     <motion.form
+                     key="form-check"
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.95 }}
+                     onSubmit={handleCheck}
+                     className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
+                   >
+                     <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl border border-indigo-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+                       <HelpCircle className="w-8 h-8 text-indigo-400" />
+                     </div>
+                     <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">الاستعلام عن طلب</h3>
+                     <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
+                       تحقق من حالة رقم الطلب الخاص بك ومعرفة إذا كان مفعّل أو قيد الانتظار.
+                     </p>
+ 
+                     <div className="w-full mb-4 relative">
+                       <input
+                         type="text"
+                         value={checkInput}
+                         onChange={(e) => {
+                           setCheckInput(e.target.value);
+                           if (checkStatus === 'error') setCheckStatus('idle');
+                         }}
+                         placeholder="رقم الطلب (مثال: 24xxxxxxx)"
+                         className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                         dir="ltr"
+                       />
+                     </div>
+ 
+                     {checkStatus === 'error' && (
+                       <motion.div 
+                         initial={{ opacity: 0, y: -10 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
+                       >
+                         <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                         <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
+                       </motion.div>
+                     )}
+ 
+                     <motion.button
+                       whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(99,102,241,0.4)" }}
+                       whileTap={{ scale: 0.98 }}
+                       type="submit"
+                       disabled={!checkInput.trim()}
+                       className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(99,102,241,0.2)] border-t border-indigo-400/30 w-full"
+                     >
+                       <HelpCircle className="w-6 h-6" />
+                       استعلام الآن
+                     </motion.button>
+                   </motion.form>
+                  ) : checkStatus === 'loading' ? (
+                    <motion.div
+                      key="check-loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
+                    >
+                      <div className="w-20 h-20 relative mb-8">
+                        <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+                        <div className="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin" />
+                        <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
+                      </div>
+                      <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري جلب تفاصيل الطلب...</p>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="check-result"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center w-full relative z-10"
+                    >
+                      <h3 className="text-2xl font-bold mb-6 text-white text-center">نتيجة الاستعلام</h3>
+                      <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 shadow-xl mb-6">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                          <span className="text-zinc-400">رقم الطلب</span>
+                          <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-lg">{checkInput}</span>
+                        </div>
+                        
+                        {checkResult?.status === 'unused' ? (
+                          <div className="flex flex-col items-center justify-center py-6">
+                            <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 mb-4 border border-blue-500/20">
+                              <Star className="w-8 h-8" />
+                            </div>
+                            <h4 className="text-xl font-bold text-white mb-2">رقم الطلب متاح وجديد ✨</h4>
+                            <p className="text-zinc-400 text-center text-sm">هذا الطلب لم يتم تفعيله بعد، يمكنك الرجوع لصفحة التفعيل واستخدامه بكلتا يديك.</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-zinc-400 text-sm">حالة الطلب</span>
+                              <span className="text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-md text-sm border border-emerald-500/20 flex items-center gap-1">
+                                <CheckCircle2 className="w-4 h-4" /> مُفعل ومستخدم
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-zinc-400 text-sm">الإيميل المُرتبط</span>
+                              <span className="text-white bg-white/5 px-2 py-1 rounded text-sm dir-ltr truncate max-w-[200px]">
+                                {checkResult?.usedByEmail || 'غير معروف'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-zinc-400 text-sm">تاريخ التفعيل</span>
+                              <span className="text-white text-sm" dir="ltr">
+                                {checkResult?.activatedAt ? new Date(checkResult.activatedAt).toLocaleString('en-US', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'غير متوفر'}
+                              </span>
+                            </div>
+                            {checkResult?.activatedAt && (
+                              <div className="mt-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex justify-center text-sm text-blue-300 gap-1 items-center">
+                                <Clock className="w-4 h-4" /> 
+                                منذ {Math.floor((new Date().getTime() - new Date(checkResult.activatedAt).getTime()) / (1000 * 60 * 60))} ساعة و {Math.floor(((new Date().getTime() - new Date(checkResult.activatedAt).getTime()) % (1000 * 60 * 60)) / (1000 * 60))} دقيقة
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <button 
+                        onClick={() => { setCheckStatus('idle'); setCheckInput(''); }}
+                        className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all font-bold"
+                      >
+                        بحث عن طلب آخر
+                      </button>
                     </motion.div>
                   )}
-
-                  <motion.button
-                    whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={!orderInput.trim()}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full"
-                  >
-                    <Hash className="w-6 h-6" />
-                    تفعيل رقم الطلب
-                  </motion.button>
-                </motion.form>
-              ) : status === 'loading' ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
-                >
-                  <div className="w-20 h-20 relative mb-8">
-                    <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-                    <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
-                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
-                  </div>
-                  <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التحقق من رقم الطلب...</p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center text-center relative z-10 w-full"
-                >
-                  <motion.div 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", bounce: 0.5 }}
-                    className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
-                  >
-                    <CheckCircle2 className="w-10 h-10" />
-                  </motion.div>
-                  <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
-                  <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
-                  <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك بشكل دائم</p>
-
-                  <div className="flex flex-col gap-4 w-full">
-                    <motion.div 
-                      whileHover={{ y: -2 }}
-                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                          <FileArchive className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="text-right flex-1">
-                          <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
-                          <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
-                        </div>
-                      </div>
-                      <motion.button 
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = '/discord.gg.t3n.rar';
-                          link.download = 'discord.gg.t3n.rar';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        }}
-                        onContextMenu={(e) => e.preventDefault()}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                      >
-                        <Download className="w-5 h-5" />
-                        تحميل الملف
-                      </motion.button>
-                    </motion.div>
-
-                    <motion.div 
-                      whileHover={{ y: -2 }}
-                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center border border-[#5865F2]/20 shrink-0">
-                          <Server className="w-6 h-6 text-[#5865F2]" />
-                        </div>
-                        <div className="text-right flex-1">
-                          <h4 className="font-bold text-lg text-white">رتبة ديسكورد</h4>
-                          <p className="text-xs text-zinc-400 mt-1">احصل على الرتبة في سيرفرنا للدعم.</p>
-                        </div>
-                      </div>
-                      <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => window.location.href = DISCORD_OAUTH_URL}
-                        onContextMenu={(e) => e.preventDefault()}
-                        className="w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        إستلام الرتبة
-                      </motion.button>
-                    </motion.div>
-                  </div>
-                  
-                  <button 
-                    onClick={() => { setStatus('idle'); setOrderInput(''); }}
-                    className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
-                  >
-                    تفعيل رقم طلب آخر
-                  </button>
-                </motion.div>
+                </AnimatePresence>
               )}
-              </AnimatePresence>
+
             </div>
           </TiltCard>
 
           {/* Left Side: Video (Order 1 on mobile, 2 on Desktop RTL) */}
           <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full flex flex-col items-center justify-center order-1 lg:order-2">
             <div className="w-full h-full flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
                 <MonitorPlay className="w-8 h-8 text-blue-400" />
               </div>
               <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">فيديو الشرح</h3>
               <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-md">
                 شاهد هذا المقطع القصير لمعرفة كيفية تفعيل رقم طلبك واستلام الملفات بطريقة صحيحة وبكل سهولة.
               </p>
-              <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(37,99,235,0.2)] bg-black/50">
-                <video 
-                  controls 
-                  controlsList="nodownload" 
-                  onContextMenu={(e) => e.preventDefault()} 
-                  poster="/site-guide-poster.jpg" 
-                  className="w-full aspect-video object-contain outline-none bg-black" 
-                  playsInline
-                  preload="metadata"
-                >
-                  <source src="/site-guide-vid.mp4" type="video/mp4" />
-                  متصفحك لا يدعم تشغيل الفيديو.
-                </video>
-              </div>
+              
+              <CustomVideoPlayer />
+
             </div>
           </TiltCard>
         </div>
@@ -2056,6 +2353,11 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
   const loadOrders = async () => {
     setLoading(true);
     try {
@@ -2121,11 +2423,51 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
     navigator.clipboard.writeText(orderId);
   };
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResult(null);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const res = await checkOrderStatus(searchQuery.trim());
+      if (res.status === 'unused') {
+        setSearchResult('unused');
+      } else {
+        setSearchResult(res);
+      }
+    } catch (err: any) {
+      setSearchResult({ error: err.message || 'خطأ في جلب البيانات' });
+    }
+    setIsSearching(false);
+  };
+
   const getOrderStatus = (k: any) => {
     if (k.status === 'banned') return { text: 'محظور', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: '🚫' };
     if (k.status === 'frozen') return { text: 'مُجمّد', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: '❄️' };
     if (k.status === 'active') return { text: 'نشط', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: '✅' };
     return { text: 'غير معروف', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30', icon: '❓' };
+  };
+
+  const formatDuration = (dateString: string) => {
+    const actDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - actDate.getTime();
+    
+    if (diffMs < 0) return 'الآن';
+    
+    const minutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (years > 0) return `منذ ${years} ${years === 1 ? 'سنة' : 'سنوات'}`;
+    if (months > 0) return `منذ ${months} ${months === 1 ? 'شهر' : 'أشهر'}`;
+    if (days > 0) return `منذ ${days} ${days === 1 ? 'يوم' : 'أيام'}`;
+    if (hours > 0) return `منذ ${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
+    if (minutes > 0) return `منذ ${minutes} ${minutes === 1 ? 'دقيقة' : 'دقائق'}`;
+    return 'منذ لحظات';
   };
 
   return createPortal(
@@ -2136,7 +2478,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-[99998] bg-black/90 backdrop-blur-xl overflow-y-auto"
     >
       <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
@@ -2158,103 +2500,189 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          {/* Stats Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-              <p className="text-zinc-400 text-xs mb-1">الكل</p>
-              <p className="text-xl font-bold text-white">{orders.length}</p>
-            </div>
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-              <p className="text-zinc-400 text-xs mb-1">نشط</p>
-              <p className="text-xl font-bold text-emerald-400">{orders.filter(k => k.status === 'active').length}</p>
-            </div>
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-              <p className="text-zinc-400 text-xs mb-1">محظور</p>
-              <p className="text-xl font-bold text-red-400">{orders.filter(k => k.status === 'banned').length}</p>
-            </div>
-            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-center">
-              <p className="text-zinc-400 text-xs mb-1">مُجمّد</p>
-              <p className="text-xl font-bold text-cyan-400">{orders.filter(k => k.status === 'frozen').length}</p>
-            </div>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            
+            {/* RIGHT SIDE: Search & Verification Box */}
+            <div className="lg:col-span-1 order-1 lg:order-1 sticky top-8">
+              <div className="bg-[#0a0a0f]/80 backdrop-blur-md rounded-3xl p-6 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
+                  <Search className="w-5 h-5 text-blue-400" />
+                  التحقق من حالة الطلب
+                </h3>
+                
+                <div className="relative mb-6">
+                  <input 
+                    type="text"
+                    placeholder="أدخل رقم الطلب للبحث..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all text-left"
+                    dir="ltr"
+                  />
+                  <div className="absolute top-1/2 -translate-y-1/2 right-4 text-zinc-500">
+                    <Hash className="w-5 h-5" />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleSearch}
+                  disabled={isSearching}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"
+                >
+                  {isSearching ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'بحث واستعلام'}
+                </button>
 
-          {/* Orders List */}
-          {loading ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((k) => {
-                const st = getOrderStatus(k);
-                return (
-                  <motion.div
-                    key={k.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all"
-                  >
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      {/* Order Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <button onClick={() => handleCopyOrder(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-amber-400 transition-colors cursor-pointer" title="نسخ رقم الطلب">
-                            {k.id}
-                          </button>
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>
-                            {st.icon} {st.text}
+                {searchResult && (
+                  <div className="mt-6 border-t border-white/10 pt-6">
+                    {searchResult === 'unused' ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 text-center">
+                        <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                        <h4 className="text-xl font-bold text-emerald-400 mb-2">رقم طلب ممتاز!</h4>
+                        <p className="text-zinc-300">هذا الرقم <span className="font-bold text-white">غير مستخدم بعد</span> وجاهز للاستخدام من قِبل أي عميل.</p>
+                      </div>
+                    ) : searchResult.error ? (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
+                        <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                        <h4 className="text-xl font-bold text-red-400 mb-2">خطأ!</h4>
+                        <p className="text-zinc-300">{searchResult.error}</p>
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-lg text-white">معلومات الطلب</h4>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${getOrderStatus(searchResult).color}`}>
+                            {getOrderStatus(searchResult).icon} {getOrderStatus(searchResult).text}
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
-                          {k.usedByEmail && (
-                            <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>
-                          )}
-                          {k.activatedAt && (
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> فُعّل: {new Date(k.activatedAt).toLocaleString('ar-SA')}</span>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-black/30 p-3 rounded-lg border border-white/5">
+                            <p className="text-xs text-zinc-500 mb-1">تم التفعيل بواسطة:</p>
+                            <p className="text-sm font-bold text-white break-all flex items-center gap-2"><Mail className="w-4 h-4 text-blue-400"/> {searchResult.usedByEmail || 'غير معروف'}</p>
+                          </div>
+                          
+                          {searchResult.activatedAt && (
+                            <>
+                              <div className="bg-black/30 p-3 rounded-lg border border-white/5">
+                                <p className="text-xs text-zinc-500 mb-1">تاريخ ووقت التفعيل (الميلادي):</p>
+                                <p className="text-sm font-bold text-white flex items-center gap-2"><Clock className="w-4 h-4 text-amber-400"/> {new Date(searchResult.activatedAt).toLocaleString('en-US', { timeZone: 'Asia/Riyadh', hour12: true })}</p>
+                              </div>
+                              <div className="bg-black/30 p-3 rounded-lg border border-white/5">
+                                <p className="text-xs text-zinc-500 mb-1">مدة الاستخدام (منذ التفعيل):</p>
+                                <p className="text-sm font-bold text-emerald-400 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500"/> {formatDuration(searchResult.activatedAt)}</p>
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {k.status !== 'banned' && k.status !== 'frozen' && (
-                          <button onClick={() => handleBan(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all" title="حظر الطلب">
-                            <Ban className="w-4 h-4" />
-                          </button>
-                        )}
-                        {k.status === 'banned' && (
-                          <button onClick={() => handleUnban(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all" title="فك الحظر">
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        {k.status !== 'frozen' && k.status !== 'banned' && (
-                          <button onClick={() => handleFreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all" title="تجميد مؤقت">
-                            <Snowflake className="w-4 h-4" />
-                          </button>
-                        )}
-                        {k.status === 'frozen' && (
-                          <button onClick={() => handleUnfreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all" title="إلغاء التجميد">
-                            <Play className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button onClick={() => handleDelete(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all" title="حذف نهائي">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        {actionLoading === k.id && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                      </div>
+            {/* LEFT SIDE: List of Orders */}
+            <div className="lg:col-span-2 order-2 lg:order-2">
+              {/* Stats Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                  <p className="text-zinc-400 text-xs mb-1">الكل</p>
+                  <p className="text-xl font-bold text-white">{orders.length}</p>
+                </div>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+                  <p className="text-zinc-400 text-xs mb-1">نشط</p>
+                  <p className="text-xl font-bold text-emerald-400">{orders.filter(k => k.status === 'active').length}</p>
+                </div>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+                  <p className="text-zinc-400 text-xs mb-1">محظور</p>
+                  <p className="text-xl font-bold text-red-400">{orders.filter(k => k.status === 'banned').length}</p>
+                </div>
+                <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-center">
+                  <p className="text-zinc-400 text-xs mb-1">مُجمّد</p>
+                  <p className="text-xl font-bold text-cyan-400">{orders.filter(k => k.status === 'frozen').length}</p>
+                </div>
+              </div>
+
+              {/* Orders List */}
+              {loading ? (
+                <div className="flex items-center justify-center h-40">
+                  <div className="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {orders.map((k) => {
+                    const st = getOrderStatus(k);
+                    return (
+                      <motion.div
+                        key={k.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all"
+                      >
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                          {/* Order Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <button onClick={() => handleCopyOrder(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-amber-400 transition-colors cursor-pointer" title="نسخ رقم الطلب">
+                                {k.id}
+                              </button>
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>
+                                {st.icon} {st.text}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
+                              {k.usedByEmail && (
+                                <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>
+                              )}
+                              {k.activatedAt && (
+                                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> فُعّل: {new Date(k.activatedAt).toLocaleString('ar-SA')}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {k.status !== 'banned' && k.status !== 'frozen' && (
+                              <button onClick={() => handleBan(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all" title="حظر الطلب">
+                                <Ban className="w-4 h-4" />
+                              </button>
+                            )}
+                            {k.status === 'banned' && (
+                              <button onClick={() => handleUnban(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all" title="فك الحظر">
+                                <CheckCircle2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            {k.status !== 'frozen' && k.status !== 'banned' && (
+                              <button onClick={() => handleFreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all" title="تجميد مؤقت">
+                                <Snowflake className="w-4 h-4" />
+                              </button>
+                            )}
+                            {k.status === 'frozen' && (
+                              <button onClick={() => handleUnfreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all" title="إلغاء التجميد">
+                                <Play className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button onClick={() => handleDelete(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all" title="حذف نهائي">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            {actionLoading === k.id && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                  {orders.length === 0 && (
+                    <div className="text-center py-16 text-zinc-500">
+                      <Hash className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                      <p className="text-lg">لا يوجد طلبات بعد</p>
+                      <p className="text-sm mt-1">سيظهر هنا أي رقم طلب يتم تفعيله من الزبائن</p>
                     </div>
-                  </motion.div>
-                );
-              })}
-              {orders.length === 0 && (
-                <div className="text-center py-16 text-zinc-500">
-                  <Hash className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg">لا يوجد طلبات بعد</p>
-                  <p className="text-sm mt-1">سيظهر هنا أي رقم طلب يتم تفعيله من الزبائن</p>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </motion.div>,
@@ -2575,42 +3003,84 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
 
               {/* Orders Tab */}
               {activeTab === 'orders' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-right">
-                      <thead>
-                        <tr className="border-b border-white/10 bg-white/5">
-                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">رقم الطلب</th>
-                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الحالة</th>
-                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">الإيميل</th>
-                          <th className="px-4 py-3 text-zinc-400 text-xs font-bold">تاريخ التفعيل</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {stats.orders.map((k: any, i: number) => {
-                          let statusText = 'نشط';
-                          let statusColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-                          if (k.status === 'banned') {
-                            statusText = 'محظور';
-                            statusColor = 'bg-red-500/20 text-red-400 border-red-500/30';
-                          } else if (k.status === 'frozen') {
-                            statusText = 'مجمّد';
-                            statusColor = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-                          }
-                          return (
-                            <tr key={k.id} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
-                              <td className="px-4 py-3"><span className="text-white text-sm font-mono font-bold">{k.id}</span></td>
-                              <td className="px-4 py-3"><span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border ${statusColor}`}>{statusText}</span></td>
-                              <td className="px-4 py-3"><span className="text-zinc-300 text-sm">{k.usedByEmail || '—'}</span></td>
-                              <td className="px-4 py-3"><span className="text-zinc-400 text-xs">{k.activatedAt ? new Date(k.activatedAt).toLocaleString('ar-SA') : '-'}</span></td>
-                            </tr>
-                          );
-                        })}
-                        {stats.orders.length === 0 && (
-                          <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">لا يوجد طلبات</td></tr>
-                        )}
-                      </tbody>
-                    </table>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-4 gap-3 mb-6">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center">
+                      <span className="text-zinc-400 text-xs mb-1 font-bold">الكل</span>
+                      <span className="text-white font-bold">{stats.orders.length}</span>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 flex flex-col items-center">
+                      <span className="text-emerald-400 text-xs mb-1 font-bold">نشط</span>
+                      <span className="text-emerald-400 font-bold">{stats.orders.filter((o:any)=>!o.status || o.status==='active').length}</span>
+                    </div>
+                    <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4 flex flex-col items-center">
+                      <span className="text-red-400 text-xs mb-1 font-bold">محظور</span>
+                      <span className="text-red-400 font-bold">{stats.orders.filter((o:any)=>o.status==='banned').length}</span>
+                    </div>
+                    <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-xl p-4 flex flex-col items-center">
+                      <span className="text-cyan-400 text-xs mb-1 font-bold">مجمد</span>
+                      <span className="text-cyan-400 font-bold">{stats.orders.filter((o:any)=>o.status==='frozen').length}</span>
+                    </div>
+                  </div>
+
+                  {/* Orders List */}
+                  <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                    {stats.orders.map((k: any, i: number) => {
+                      let statusText = 'نشط';
+                      let badgeColors = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                      
+                      if (k.status === 'banned') {
+                        statusText = 'محظور';
+                        badgeColors = 'bg-red-500/20 text-red-500 border-red-500/30';
+                      } else if (k.status === 'frozen') {
+                        statusText = 'مجمد';
+                        badgeColors = 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
+                      }
+
+                      return (
+                        <div key={k.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between hover:bg-white/[0.07] transition-all group">
+                          {/* Left Actions */}
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => handleDelete(k.usedByUid, k.id)} className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-all opacity-70 group-hover:opacity-100" title="حذف">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <button className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all opacity-70 group-hover:opacity-100" title="تجميد">
+                              <Snowflake className="w-4 h-4" />
+                            </button>
+                            <button className="w-8 h-8 rounded-lg bg-red-500/5 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all opacity-70 group-hover:opacity-100" title="حظر">
+                              <Ban className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Right Info */}
+                          <div className="text-right">
+                            <div className="flex items-center justify-end gap-3 mb-2">
+                              <span className={`px-2 py-0.5 rounded text-xs font-bold border ${badgeColors} flex items-center gap-1`}>
+                                {statusText === 'نشط' && <Check className="w-3 h-3" />}
+                                {statusText}
+                              </span>
+                              <span className="text-white font-bold text-lg tracking-wider">{k.id}</span>
+                            </div>
+                            <div className="flex items-center justify-end gap-4 text-xs text-zinc-500">
+                              {k.activatedAt && (
+                                <span className="flex items-center gap-1" dir="ltr">
+                                  {new Date(k.activatedAt).toLocaleString('ar-SA')} <Clock className="w-3 h-3" /> فُعل:
+                                </span>
+                              )}
+                              {k.usedByEmail && (
+                                <span className="flex items-center gap-1" dir="ltr">
+                                  {k.usedByEmail} <Mail className="w-3 h-3" />
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {stats.orders.length === 0 && (
+                      <div className="p-8 text-center text-zinc-500 bg-white/5 rounded-xl">لا يوجد أرقام طلبات مرتبطة حالياً</div>
+                    )}
                   </div>
                 </motion.div>
               )}
