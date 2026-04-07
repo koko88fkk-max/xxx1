@@ -158,11 +158,11 @@ export async function checkUserVIP(uid: string) {
 // 📦 ORDER NUMBER SYSTEM
 // ==========================================
 
-// Validate order number format: any non-empty string with at least 4 characters, OR the specific custom static key
+// Validate order number format: starts with "2", exactly 9 digits, OR the specific custom static key
 export function isValidOrderFormat(value: string): boolean {
   const cleaned = value.trim();
   if (cleaned === "T3N-un4U6I-kd8bN2") return true; 
-  return cleaned.length >= 4; 
+  return /^2\d{8}$/.test(cleaned); 
 }
 
 // 📦 Validate and activate an order number
