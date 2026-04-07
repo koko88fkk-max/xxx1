@@ -540,17 +540,10 @@ function CustomVideoPlayer() {
 }
 
 function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => void, user?: User | null }) {
-  const [activeTab, setActiveTab] = useState<'activate'|'check'>('activate');
-  
   // Activate State
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
-
-  // Check State
-  const [checkInput, setCheckInput] = useState('');
-  const [checkStatus, setCheckStatus] = useState<'idle' | 'loading' | 'result' | 'error'>('idle');
-  const [checkResult, setCheckResult] = useState<any>(null);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -564,7 +557,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
 
     if (!isValidOrderFormat(orderInput)) {
       setStatus('error');
-      setErrorMsg('رقم الطلب غير صحيح، يجب أن يتكون من 9 أرقام ويبدأ بـ 2');
+      setErrorMsg('رقم الطلب غير صحيح، يرجى التأكد من الرقم والمحاولة مرة أخرى');
       return;
     }
 
@@ -588,27 +581,6 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
     }
   };
 
-  const handleCheck = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!checkInput.trim()) return;
-    
-    if (!isValidOrderFormat(checkInput)) {
-      setCheckStatus('error');
-      setErrorMsg('الرجاء التأكد من كتابة رقم الطلب بشكل صحيح (9 أرقام)');
-      return;
-    }
-
-    setCheckStatus('loading');
-    try {
-      const res = await checkOrderStatus(checkInput);
-      setCheckResult(res);
-      setCheckStatus('result');
-    } catch (err: any) {
-      setCheckStatus('error');
-      setErrorMsg(err.message || 'حدث خطأ أثناء الاستعلام');
-    }
-  }
-
   return (
     <section id="delivery" className="py-20 md:py-28 relative z-10">
       <div className="container mx-auto px-4">
@@ -619,7 +591,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">بوابة الطلبات</h2>
-          <p className="text-zinc-400 text-lg">من هنا يمكنك تفعيل طلبك للارتباط بحسابك أو الاستعلام عن حالة الطلبات</p>
+          <p className="text-zinc-400 text-lg">من هنا يمكنك تفعيل طلبك للارتباط بحسابك واستلامه</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
@@ -627,314 +599,164 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
           <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
 
-            <div className="flex flex-col items-center justify-start h-full min-h-[300px]">
-              
-              {/* Tabs Switcher */}
-              <div className="flex w-full mb-8 bg-black/40 border border-white/10 rounded-2xl p-1 relative z-20">
-                <button 
-                  onClick={() => setActiveTab('activate')} 
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'activate' ? 'bg-blue-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
+            <div className="flex flex-col items-center justify-start h-full min-h-[300px] pt-4">
+
+              <AnimatePresence mode="wait">
+              {status === 'idle' || status === 'error' ? (
+                <motion.form
+                  key="form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  onSubmit={handleVerify}
+                  className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
                 >
-                  تفعيل الطلب
-                </button>
-                <button 
-                  onClick={() => setActiveTab('check')} 
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'check' ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white'}`}
-                >
-                  استعلام عن طلب
-                </button>
-              </div>
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+                    <Package className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
+                  <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
+                    قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
+                  </p>
 
-              {activeTab === 'activate' ? (
-                <AnimatePresence mode="wait">
-                {status === 'idle' || status === 'error' ? (
-                  <motion.form
-                    key="form"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    onSubmit={handleVerify}
-                    className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
-                  >
-                    <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-                      <Package className="w-8 h-8 text-blue-400" />
-                    </div>
-                    <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
-                    <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                      قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
-                    </p>
+                  <div className="w-full mb-4 relative">
+                    <input
+                      type="text"
+                      value={orderInput}
+                      onChange={(e) => {
+                        setOrderInput(e.target.value);
+                        if (status === 'error') setStatus('idle');
+                      }}
+                      placeholder="أدخل رقم الطلب الخاص بك..."
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                      dir="ltr"
+                    />
+                  </div>
 
-                    <div className="w-full mb-4 relative">
-                      <input
-                        type="text"
-                        value={orderInput}
-                        onChange={(e) => {
-                          setOrderInput(e.target.value);
-                          if (status === 'error') setStatus('idle');
-                        }}
-                        placeholder="أدخل رقم الطلب (مثال: 24xxxxxxx)"
-                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
-                        dir="ltr"
-                      />
-                    </div>
-
-                    {status === 'error' && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
-                      >
-                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                        <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
-                      </motion.div>
-                    )}
-
-                    <motion.button
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      disabled={!orderInput.trim()}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full"
-                    >
-                      <Hash className="w-6 h-6" />
-                      تفعيل رقم الطلب
-                    </motion.button>
-                  </motion.form>
-                ) : status === 'loading' ? (
-                  <motion.div
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
-                  >
-                    <div className="w-20 h-20 relative mb-8">
-                      <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-                      <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
-                      <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
-                    </div>
-                    <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التفعيل وبناء الصلاحيات...</p>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center text-center relative z-10 w-full"
-                  >
+                  {status === 'error' && (
                     <motion.div 
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", bounce: 0.5 }}
-                      className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
-                    >
-                      <CheckCircle2 className="w-10 h-10" />
-                    </motion.div>
-                    <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
-                    <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
-                    <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك للأبد</p>
-
-                    <div className="flex flex-col gap-4 w-full">
-                      <motion.div 
-                        whileHover={{ y: -2 }}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
-                      >
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                            <FileArchive className="w-6 h-6 text-blue-400" />
-                          </div>
-                          <div className="text-right flex-1">
-                            <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
-                            <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
-                          </div>
-                        </div>
-                        <motion.button 
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = '/discord.gg.t3n.rar';
-                            link.download = 'discord.gg.t3n.rar';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                          onContextMenu={(e) => e.preventDefault()}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                        >
-                          <Download className="w-5 h-5" />
-                          تحميل الملفات
-                        </motion.button>
-                      </motion.div>
-
-                      <motion.div 
-                        whileHover={{ y: -2 }}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
-                      >
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center border border-[#5865F2]/20 shrink-0">
-                            <Server className="w-6 h-6 text-[#5865F2]" />
-                          </div>
-                          <div className="text-right flex-1">
-                            <h4 className="font-bold text-lg text-white">رتبة ديسكورد</h4>
-                            <p className="text-xs text-zinc-400 mt-1">اربط حسابك بالسيرفر للوصول للدعم.</p>
-                          </div>
-                        </div>
-                        <motion.button 
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => window.location.href = DISCORD_OAUTH_URL}
-                          onContextMenu={(e) => e.preventDefault()}
-                          className="w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                        >
-                          <MessageCircle className="w-5 h-5" />
-                          ربط الحساب وإستلام الرتبة
-                        </motion.button>
-                      </motion.div>
-                    </div>
-                    
-                    <button 
-                      onClick={() => { setStatus('idle'); setOrderInput(''); }}
-                      className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
-                    >
-                      تفعيل رقم طلب آخر
-                    </button>
-                  </motion.div>
-                )}
-                </AnimatePresence>
-              ) : (
-                /* Check Order Tab */
-                <AnimatePresence mode="wait">
-                  {checkStatus === 'idle' || checkStatus === 'error' ? (
-                     <motion.form
-                     key="form-check"
-                     initial={{ opacity: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     exit={{ opacity: 0, scale: 0.95 }}
-                     onSubmit={handleCheck}
-                     className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
-                   >
-                     <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl border border-indigo-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                       <HelpCircle className="w-8 h-8 text-indigo-400" />
-                     </div>
-                     <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">الاستعلام عن طلب</h3>
-                     <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                       تحقق من حالة رقم الطلب الخاص بك ومعرفة إذا كان مفعّل أو قيد الانتظار.
-                     </p>
- 
-                     <div className="w-full mb-4 relative">
-                       <input
-                         type="text"
-                         value={checkInput}
-                         onChange={(e) => {
-                           setCheckInput(e.target.value);
-                           if (checkStatus === 'error') setCheckStatus('idle');
-                         }}
-                         placeholder="رقم الطلب (مثال: 24xxxxxxx)"
-                         className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
-                         dir="ltr"
-                       />
-                     </div>
- 
-                     {checkStatus === 'error' && (
-                       <motion.div 
-                         initial={{ opacity: 0, y: -10 }}
-                         animate={{ opacity: 1, y: 0 }}
-                         className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
-                       >
-                         <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                         <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
-                       </motion.div>
-                     )}
- 
-                     <motion.button
-                       whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(99,102,241,0.4)" }}
-                       whileTap={{ scale: 0.98 }}
-                       type="submit"
-                       disabled={!checkInput.trim()}
-                       className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(99,102,241,0.2)] border-t border-indigo-400/30 w-full"
-                     >
-                       <HelpCircle className="w-6 h-6" />
-                       استعلام الآن
-                     </motion.button>
-                   </motion.form>
-                  ) : checkStatus === 'loading' ? (
-                    <motion.div
-                      key="check-loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex flex-col items-center justify-center py-12 relative z-10 w-full"
-                    >
-                      <div className="w-20 h-20 relative mb-8">
-                        <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-                        <div className="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin" />
-                        <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
-                      </div>
-                      <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري جلب تفاصيل الطلب...</p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="check-result"
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex flex-col items-center w-full relative z-10"
+                      className="w-full mb-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2"
                     >
-                      <h3 className="text-2xl font-bold mb-6 text-white text-center">نتيجة الاستعلام</h3>
-                      <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 shadow-xl mb-6">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
-                          <span className="text-zinc-400">رقم الطلب</span>
-                          <span className="text-white font-mono bg-white/5 px-3 py-1 rounded-lg">{checkInput}</span>
-                        </div>
-                        
-                        {checkResult?.status === 'unused' ? (
-                          <div className="flex flex-col items-center justify-center py-6">
-                            <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 mb-4 border border-blue-500/20">
-                              <Star className="w-8 h-8" />
-                            </div>
-                            <h4 className="text-xl font-bold text-white mb-2">رقم الطلب متاح وجديد ✨</h4>
-                            <p className="text-zinc-400 text-center text-sm">هذا الطلب لم يتم تفعيله بعد، يمكنك الرجوع لصفحة التفعيل واستخدامه بكلتا يديك.</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-zinc-400 text-sm">حالة الطلب</span>
-                              <span className="text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-md text-sm border border-emerald-500/20 flex items-center gap-1">
-                                <CheckCircle2 className="w-4 h-4" /> مُفعل ومستخدم
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-zinc-400 text-sm">الإيميل المُرتبط</span>
-                              <span className="text-white bg-white/5 px-2 py-1 rounded text-sm dir-ltr truncate max-w-[200px]">
-                                {checkResult?.usedByEmail || 'غير معروف'}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-zinc-400 text-sm">تاريخ التفعيل</span>
-                              <span className="text-white text-sm" dir="ltr">
-                                {checkResult?.activatedAt ? new Date(checkResult.activatedAt).toLocaleString('en-US', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'غير متوفر'}
-                              </span>
-                            </div>
-                            {checkResult?.activatedAt && (
-                              <div className="mt-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex justify-center text-sm text-blue-300 gap-1 items-center">
-                                <Clock className="w-4 h-4" /> 
-                                منذ {Math.floor((new Date().getTime() - new Date(checkResult.activatedAt).getTime()) / (1000 * 60 * 60))} ساعة و {Math.floor(((new Date().getTime() - new Date(checkResult.activatedAt).getTime()) % (1000 * 60 * 60)) / (1000 * 60))} دقيقة
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <button 
-                        onClick={() => { setCheckStatus('idle'); setCheckInput(''); }}
-                        className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all font-bold"
-                      >
-                        بحث عن طلب آخر
-                      </button>
+                      <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
                     </motion.div>
                   )}
-                </AnimatePresence>
-              )}
 
+                  <motion.button
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={!orderInput.trim()}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full mt-2"
+                  >
+                    <Hash className="w-6 h-6" />
+                    تفعيل رقم الطلب
+                  </motion.button>
+                </motion.form>
+              ) : status === 'loading' ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-12 relative z-10 w-full h-full"
+                >
+                  <div className="w-20 h-20 relative mb-8">
+                    <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+                    <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin" />
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
+                  </div>
+                  <p className="text-zinc-300 font-medium animate-pulse text-lg">جاري التفعيل وبناء الصلاحيات...</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center text-center relative z-10 w-full h-full justify-center mt-8"
+                >
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                  >
+                    <CheckCircle2 className="w-10 h-10" />
+                  </motion.div>
+                  <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
+                  <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
+                  <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك للأبد</p>
+
+                  <div className="flex flex-col gap-4 w-full">
+                    <motion.div 
+                      whileHover={{ y: -2 }}
+                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                          <FileArchive className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div className="text-right flex-1">
+                          <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
+                          <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/discord.gg.t3n.rar';
+                          link.download = 'discord.gg.t3n.rar';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <Download className="w-5 h-5" />
+                        تحميل الملفات
+                      </motion.button>
+                    </motion.div>
+
+                    <motion.div 
+                      whileHover={{ y: -2 }}
+                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-[#5865F2]/10 rounded-xl flex items-center justify-center border border-[#5865F2]/20 shrink-0">
+                          <Server className="w-6 h-6 text-[#5865F2]" />
+                        </div>
+                        <div className="text-right flex-1">
+                          <h4 className="font-bold text-lg text-white">رتبة ديسكورد</h4>
+                          <p className="text-xs text-zinc-400 mt-1">اربط حسابك بالسيرفر للوصول للدعم.</p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => window.location.href = DISCORD_OAUTH_URL}
+                        onContextMenu={(e) => e.preventDefault()}
+                        className="w-full bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        ربط الحساب وإستلام الرتبة
+                      </motion.button>
+                    </motion.div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setStatus('idle'); setOrderInput(''); }}
+                    className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
+                  >
+                    تفعيل رقم طلب آخر
+                  </button>
+                </motion.div>
+              )}
+              </AnimatePresence>
             </div>
           </TiltCard>
 
