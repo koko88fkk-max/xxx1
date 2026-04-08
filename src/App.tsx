@@ -258,7 +258,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                             {n.attachments && n.attachments.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {n.attachments.map((att: string, idx: number) => (
-                                  att.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
+                                  att.split('?')[0].match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
                                     <img key={idx} src={att} className="rounded-lg max-h-24 object-cover border border-white/10 w-full cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setExpandedNotif(n)} /> : 
                                     <a key={idx} href={att} target="_blank" className="flex items-center gap-1 text-[11px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded truncate w-full"><ExternalLink className="w-3 h-3 shrink-0" /> {att.split('/').pop()}</a>
                                 ))}
