@@ -33,7 +33,7 @@ webServer.listen(PORT, () => console.log(`🚀 Keep-Alive Web Server is running 
 
 // ====== Firebase Setup ======
 const { initializeApp } = require('firebase/app');
-const { getFirestore, doc, setDoc, getDoc, deleteDoc } = require('firebase/firestore');
+const { getFirestore, doc, setDoc, getDoc, deleteDoc, collection } = require('firebase/firestore');
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A",
@@ -52,7 +52,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds, 
     GatewayIntentBits.GuildMessages, 
-    GatewayIntentBits.GuildVoiceStates
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.MessageContent
   ] 
 });
 
@@ -355,6 +356,35 @@ client.on('interactionCreate', async (interaction) => {
         console.error(err);
         await interaction.editReply({ content: '❌ فشل الحذف بسبب خطأ داخلي.' });
       }
+    }
+  }
+});
+
+// ====== Sync Announcements to Firebase ======
+const ANNOUNCE_CHANNEL_ID = '1416534916027519037';
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  
+  if (message.channelId === ANNOUNCE_CHANNEL_ID) {
+    try {
+      const attachments = message.attachments.map(a => a.url); // Extract file/image URLs
+      const content = message.content;
+      
+      // Auto-generate ID using doc() without path
+      const docRef = doc(collection(db, "notifications"));
+      
+      await setDoc(docRef, {
+        content: content,
+        attachments: attachments,
+        author: message.author.username,
+        avatar: message.author.displayAvatarURL(),
+        createdAt: new Date().toISOString()
+      });
+      
+      console.log(`✅ Notification synced to Firebase: ${content.substring(0, 30)}...`);
+    } catch (err) {
+      console.error('❌ Failed to sync notification to Firebase:', err);
     }
   }
 });
