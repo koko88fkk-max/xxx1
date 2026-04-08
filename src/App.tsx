@@ -706,8 +706,8 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                       <motion.button 
                         onClick={() => {
                           const link = document.createElement('a');
-                          link.href = '/discord.gg.t3n.rar';
-                          link.download = 'discord.gg.t3n.rar';
+                          link.href = '/discord.gg_t3n.rar';
+                          link.download = 'discord.gg_t3n.rar';
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
