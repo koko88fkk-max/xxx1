@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9mFTUF1_mBzTl3VvxNq5G-mdhrJvzI0A",
@@ -465,4 +465,13 @@ export async function checkOrderStatus(orderId: string): Promise<any> {
     return { status: 'unused' };
   }
   return { status: 'used', ...snap.data() };
+}
+
+// 🔔 Listen to notifications (Announcements from Discord)
+export function listenToNotifications(callback: (notifs: any[]) => void) {
+  const q = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50));
+  return onSnapshot(q, (snapshot) => {
+    const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(notifs);
+  });
 }

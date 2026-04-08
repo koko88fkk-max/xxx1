@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus } from './lib/firebase';
+import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell } from 'lucide-react';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -100,8 +100,28 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
   return <div className="perspective-1000">{content}</div>;
 }
 
-function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void }) {
+function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNotifPopup, setShowNotifPopup] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifPopup(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleNotifClick = () => {
+    setShowNotifPopup(!showNotifPopup);
+    if (!showNotifPopup && unreadCount > 0 && onReadNotifications) {
+      onReadNotifications();
+    }
+  };
+
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
@@ -187,6 +207,66 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                 <span className="text-yellow-400 font-bold text-sm tracking-wide">عميل مميز</span>
               </motion.div>
             )}
+
+            {/* Bell Notifications */}
+            <div className="relative" ref={notifRef}>
+              <motion.button 
+                onClick={handleNotifClick}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#06060c] animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </motion.button>
+              
+              <AnimatePresence>
+                {showNotifPopup && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute left-0 top-14 w-[320px] bg-[#0a0a14]/95 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden z-50 text-right flex flex-col"
+                  >
+                    <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
+                      <span className="text-xs text-blue-400 font-bold bg-blue-500/10 px-2 py-1 rounded-full">تنبيهات تلقائية من الديسكورد 🔔</span>
+                      <h3 className="font-bold text-white flex gap-2 items-center">الإشعارات <Bell className="w-4 h-4 text-zinc-400" /></h3>
+                    </div>
+                    <div className="max-h-[350px] overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-zinc-500 text-sm">لا توجد إشعارات حالياً</div>
+                      ) : (
+                        notifications.map((n, i) => (
+                          <div key={n.id || i} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors relative">
+                            <div className="flex items-center gap-3 mb-2">
+                              {n.avatar ? <img src={n.avatar} className="w-8 h-8 rounded-full border border-blue-500/30" /> : <div className="w-8 h-8 rounded-full bg-blue-500/20" />}
+                              <div className="flex-1 min-w-0 flex justify-between items-center">
+                                <span className="font-bold text-sm text-blue-200 truncate">{n.author || 'إدارة T3N'}</span>
+                                {n.createdAt && <span className="text-[10px] text-zinc-500">{new Date(n.createdAt).toLocaleDateString('ar-SA')}</span>}
+                              </div>
+                            </div>
+                            <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: n.content ? n.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:underline">$1</a>') : '' }} />
+                            {n.attachments && n.attachments.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {n.attachments.map((att: string, idx: number) => (
+                                  att.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
+                                    <img key={idx} src={att} className="rounded-lg max-h-32 object-cover border border-white/10 w-full" /> : 
+                                    <a key={idx} href={att} target="_blank" className="flex items-center gap-1 text-[11px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded truncate w-full"><ExternalLink className="w-3 h-3 shrink-0" /> {att.split('/').pop()}</a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <motion.a 
               whileHover={{ scale: 1.05, y: -2 }}
@@ -3028,6 +3108,34 @@ export default function App() {
   const [appLoading, setAppLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const unsub = listenToNotifications((notifs) => {
+      setNotifications(notifs);
+      const lastReadId = localStorage.getItem('t3n_last_read_notif');
+      if (!lastReadId) {
+        setUnreadCount(notifs.length);
+      } else {
+        const lastReadIndex = notifs.findIndex(n => n.id === lastReadId);
+        if (lastReadIndex === -1) {
+          setUnreadCount(notifs.length);
+        } else {
+          setUnreadCount(lastReadIndex);
+        }
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  const handleReadNotifications = () => {
+    if (notifications.length > 0) {
+      localStorage.setItem('t3n_last_read_notif', notifications[0].id);
+      setUnreadCount(0);
+    }
+  };
+
   useEffect(() => {
     // Scroll to top listener
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
@@ -3315,6 +3423,9 @@ export default function App() {
         authLoading={authLoading}
         onSpooferClick={() => setShowSpooferGuide(true)} 
         onTroubleshootClick={() => setShowTroubleshoot(true)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onReadNotifications={handleReadNotifications}
       />
 
       {/* Admin Button - Only visible to admin */}
