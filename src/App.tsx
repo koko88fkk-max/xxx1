@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications, deleteNotification } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
 const LOGO_URL = "/logo.png";
@@ -100,9 +100,10 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
   return <div className="perspective-1000">{content}</div>;
 }
 
-function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void }) {
+function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
+  const [expandedNotif, setExpandedNotif] = useState<any>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -120,6 +121,10 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
     if (!showNotifPopup && unreadCount > 0 && onReadNotifications) {
       onReadNotifications();
     }
+  };
+
+  const handleDeleteNotif = async (notifId: string) => {
+    try { await deleteNotification(notifId); } catch (e) { console.error(e); }
   };
 
 
@@ -230,18 +235,18 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute left-0 top-14 w-[320px] bg-[#0a0a14]/95 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden z-50 text-right flex flex-col"
+                    className="absolute left-0 top-14 w-[340px] bg-[#0a0a14]/95 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden z-50 text-right flex flex-col"
                   >
                     <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                       <span className="text-xs text-blue-400 font-bold bg-blue-500/10 px-2 py-1 rounded-full">تنبيهات تلقائية من الديسكورد 🔔</span>
                       <h3 className="font-bold text-white flex gap-2 items-center">الإشعارات <Bell className="w-4 h-4 text-zinc-400" /></h3>
                     </div>
-                    <div className="max-h-[350px] overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
+                    <div className="max-h-[400px] overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
                       {notifications.length === 0 ? (
                         <div className="p-6 text-center text-zinc-500 text-sm">لا توجد إشعارات حالياً</div>
                       ) : (
                         notifications.map((n, i) => (
-                          <div key={n.id || i} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors relative">
+                          <div key={n.id || i} className="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors relative group">
                             <div className="flex items-center gap-3 mb-2">
                               {n.avatar ? <img src={n.avatar} className="w-8 h-8 rounded-full border border-blue-500/30" /> : <div className="w-8 h-8 rounded-full bg-blue-500/20" />}
                               <div className="flex-1 min-w-0 flex justify-between items-center">
@@ -254,11 +259,18 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {n.attachments.map((att: string, idx: number) => (
                                   att.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
-                                    <img key={idx} src={att} className="rounded-lg max-h-32 object-cover border border-white/10 w-full" /> : 
+                                    <img key={idx} src={att} className="rounded-lg max-h-24 object-cover border border-white/10 w-full cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setExpandedNotif(n)} /> : 
                                     <a key={idx} href={att} target="_blank" className="flex items-center gap-1 text-[11px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded truncate w-full"><ExternalLink className="w-3 h-3 shrink-0" /> {att.split('/').pop()}</a>
                                 ))}
                               </div>
                             )}
+                            {/* Action buttons */}
+                            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-white/5">
+                              <button onClick={() => setExpandedNotif(n)} className="text-[10px] flex items-center gap-1 text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-all"><Maximize2 className="w-3 h-3" /> تكبير</button>
+                              {isAdminUser && (
+                                <button onClick={() => handleDeleteNotif(n.id)} className="text-[10px] flex items-center gap-1 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded-md transition-all mr-auto"><Trash2 className="w-3 h-3" /> حذف</button>
+                              )}
+                            </div>
                           </div>
                         ))
                       )}
@@ -267,6 +279,54 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Expanded Notification Modal */}
+            {expandedNotif && createPortal(
+              <AnimatePresence>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+                  onClick={() => setExpandedNotif(null)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-[#0c0c18] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto text-right"
+                  >
+                    <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/5">
+                      <button onClick={() => setExpandedNotif(null)} className="text-zinc-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <h3 className="font-bold text-white text-sm">{expandedNotif.author || 'إدارة T3N'}</h3>
+                          {expandedNotif.createdAt && <p className="text-[11px] text-zinc-500">{new Date(expandedNotif.createdAt).toLocaleString('ar-SA')}</p>}
+                        </div>
+                        {expandedNotif.avatar ? <img src={expandedNotif.avatar} className="w-10 h-10 rounded-full border border-blue-500/30" /> : <div className="w-10 h-10 rounded-full bg-blue-500/20" />}
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap break-words mb-4" dangerouslySetInnerHTML={{ __html: expandedNotif.content ? expandedNotif.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:underline">$1</a>') : '' }} />
+                      {expandedNotif.attachments && expandedNotif.attachments.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                          {expandedNotif.attachments.map((att: string, idx: number) => (
+                            att.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
+                              <img key={idx} src={att} className="rounded-xl w-full object-contain border border-white/10 max-h-[60vh]" /> : 
+                              <a key={idx} href={att} target="_blank" className="flex items-center gap-2 text-sm bg-blue-500/20 text-blue-300 px-4 py-3 rounded-xl hover:bg-blue-500/30 transition-colors"><ExternalLink className="w-4 h-4 shrink-0" /> {att.split('/').pop()}</a>
+                          ))}
+                        </div>
+                      )}
+                      {isAdminUser && (
+                        <button onClick={() => { handleDeleteNotif(expandedNotif.id); setExpandedNotif(null); }} className="mt-4 flex items-center gap-2 text-sm text-red-400 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-xl transition-all border border-red-500/20"><Trash2 className="w-4 h-4" /> حذف هذا الإشعار</button>
+                      )}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </AnimatePresence>,
+              document.body
+            )}
 
             <motion.a 
               whileHover={{ scale: 1.05, y: -2 }}
@@ -3426,6 +3486,7 @@ export default function App() {
         notifications={notifications}
         unreadCount={unreadCount}
         onReadNotifications={handleReadNotifications}
+        isAdminUser={isAdminUser}
       />
 
       {/* Admin Button - Only visible to admin */}

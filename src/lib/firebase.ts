@@ -475,3 +475,9 @@ export function listenToNotifications(callback: (notifs: any[]) => void) {
     callback(notifs);
   });
 }
+
+// 🗑️ Delete a notification
+export async function deleteNotification(notifId: string) {
+  const notifRef = doc(db, "notifications", notifId);
+  await deleteDoc(notifRef);
+}
