@@ -312,7 +312,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                       {expandedNotif.attachments && expandedNotif.attachments.length > 0 && (
                         <div className="flex flex-col gap-3">
                           {expandedNotif.attachments.map((att: string, idx: number) => (
-                            att.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
+                            att.split('?')[0].match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 
                               <img key={idx} src={att} className="rounded-xl w-full object-contain border border-white/10 max-h-[60vh]" /> : 
                               <a key={idx} href={att} target="_blank" className="flex items-center gap-2 text-sm bg-blue-500/20 text-blue-300 px-4 py-3 rounded-xl hover:bg-blue-500/30 transition-colors"><ExternalLink className="w-4 h-4 shrink-0" /> {att.split('/').pop()}</a>
                           ))}
