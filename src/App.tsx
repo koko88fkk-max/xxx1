@@ -3584,6 +3584,24 @@ export default function App() {
                 سيرفر الدعم
               </div>
             </motion.a>
+
+            <motion.a
+              href="discord://discord.com/channels/1396959491786018826/1396973128214909008"
+              onClick={(e) => {
+                // Fallback: if discord:// doesn't work, open in browser
+                setTimeout(() => {
+                  window.open("https://discord.com/channels/1396959491786018826/1396973128214909008", "_blank");
+                }, 500);
+              }}
+              whileHover={{ scale: 1.1, x: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className="group relative w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(16,185,129,0.4)] border border-emerald-400/30 hover:shadow-[0_8px_35px_rgba(16,185,129,0.6)] transition-shadow"
+            >
+              <HelpCircle className="w-6 h-6" />
+              <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black/90 backdrop-blur-lg text-white text-sm font-bold px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 shadow-xl">
+                🎫 فتح تذكرة دعم
+              </div>
+            </motion.a>
           </motion.div>
         )}
       </AnimatePresence>
