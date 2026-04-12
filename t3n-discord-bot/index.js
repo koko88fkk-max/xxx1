@@ -9,6 +9,8 @@ const {
   ModalBuilder, 
   TextInputBuilder, 
   TextInputStyle, 
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   REST, 
   Routes,
   PermissionFlagsBits
@@ -115,6 +117,11 @@ client.once('ready', async () => {
           name: 'koz',
           description: 'فتح لوحة تحكم مفاتيح T3N (للأدمن فقط)',
           default_member_permissions: String(PermissionFlagsBits.Administrator)
+        },
+        {
+          name: 'setup_buy',
+          description: 'إرسال واجهة لوحة الشراء في الروم (للأدمن فقط)',
+          default_member_permissions: String(PermissionFlagsBits.Administrator)
         }
       ] }
     );
@@ -127,8 +134,28 @@ client.once('ready', async () => {
 // ====== Interaction Handler ======
 client.on('interactionCreate', async (interaction) => {
   
-  // --- 1. /koz Command (Show Panel) ---
   if (interaction.isChatInputCommand()) {
+    if (interaction.commandName === 'setup_buy') {
+      if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+        return interaction.reply({ content: '❌ لا تملك صلاحيات.', ephemeral: true });
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('🛒 قسم المبيعات - متجر T3N')
+        .setDescription('أهلاً بك في قسم الشراء،\nالرجاء الضغط على الزر بالأسفل لاختيار المنتج واستكمال خطوات الدفع.')
+        .setColor('#1E90FF');
+
+      const btn = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('buy_panel_btn')
+          .setLabel('مستعد للشراء ؟')
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      await interaction.channel.send({ embeds: [embed], components: [btn] });
+      return interaction.reply({ content: '✅ تم إرسال رسالة الشراء بنجاح في هذا الروم التلقائي.', ephemeral: true });
+    }
+
     if (interaction.commandName === 'koz') {
       
       // Security: Check if it's the right channel
@@ -176,9 +203,63 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 
+  // --- Handle String Select Menus ---
+  if (interaction.isStringSelectMenu()) {
+    if (interaction.customId === 'buy_select_product') {
+      const selected = interaction.values[0];
+      let productName = '';
+      let price = '';
+      
+      if (selected === 'fn_unban') {
+        productName = 'فك باند فورت نايت';
+        price = '49.99 ريال';
+      } else if (selected === 'perm_unban') {
+        productName = 'فك باند العاب perm';
+        price = '29.99 ريال';
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('🧾 تفاصيل الدفع لتأكيد الطلب')
+        .setDescription(`المنتج المطلوب: **${productName}**\nالسعر الإجمالي: **${price}**\n\nالرجاء تحويل المبلغ إلى الحساب البنكي التالي:`)
+        .addFields(
+          { name: '🏦 رقم الحساب (IBAN)', value: '`SA1205000068207052071000`' },
+          { name: '👤 اسم صاحب الحساب', value: 'ياسر محمد البلوي' },
+          { name: '⚠️ تعليمات الاستلام', value: 'بعد إتمام التحويل، يرجى إرسال **رسالة وإيصال التحويل في تذكرة الدعم** ليتم تسليمك رتبتك، منتجك، والمفتاح الخاص بك مباشرة.' }
+        )
+        .setColor('#2ecc71') // اللون الأخضر الرسمي
+        .setFooter({ text: 'T3N System - قسم الدفع الآلي' })
+        .setTimestamp();
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+  }
+
   // --- 2. Button Interactions ---
   if (interaction.isButton()) {
     
+    // Handler for the "مستعد للشراء ؟" button
+    if (interaction.customId === 'buy_panel_btn') {
+      const row = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId('buy_select_product')
+          .setPlaceholder('اختر المنتج الذي تود شراءه...')
+          .addOptions(
+            new StringSelectMenuOptionBuilder()
+              .setLabel('فك باند فورت نايت')
+              .setValue('fn_unban'),
+            new StringSelectMenuOptionBuilder()
+              .setLabel('فك باند العاب perm')
+              .setValue('perm_unban')
+          )
+      );
+      
+      return interaction.reply({ 
+        content: 'يرجى اختيار المنتج من القائمة المنسدلة بالأسفل للحصول على تفاصيل الدفع:', 
+        components: [row], 
+        ephemeral: true 
+      });
+    }
+
     // A. Single Key Creation
     if (interaction.customId === 'btn_create_single') {
       await interaction.deferReply();
