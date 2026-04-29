@@ -444,9 +444,39 @@ client.on('interactionCreate', async (interaction) => {
 // ====== Sync Announcements to Firebase ======
 const ANNOUNCE_CHANNEL_ID = '1416534916027519037';
 
+// ====== Anti-Spam Filter ======
+const SPAM_PROTECTED_CHANNELS = ['1396971888554672129', '1396960054476935469'];
+
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
-  
+
+  // 🛡️ Anti-Spam: Check protected channels
+  if (SPAM_PROTECTED_CHANNELS.includes(message.channelId)) {
+    const content = message.content.toLowerCase().trim();
+    const hasAttachments = message.attachments.size > 0;
+
+    const isCheckMyBio = content.includes('check my bio');
+    const isBroWithImage = content.includes('bro') && hasAttachments;
+    const isCheckMyBioWithImage = isCheckMyBio && hasAttachments;
+
+    if (isCheckMyBio || isBroWithImage || isCheckMyBioWithImage) {
+      try {
+        // Delete the spam message
+        await message.delete();
+        console.log(`🛡️ [Anti-Spam] Deleted spam from ${message.author.tag} in #${message.channel.name}: "${message.content.substring(0, 50)}"`);
+
+        // Timeout the user for 10 minutes (600000ms)
+        if (message.member && message.member.moderatable) {
+          await message.member.timeout(10 * 60 * 1000, 'T3N Anti-Spam: رسالة سبام محذوفة تلقائياً');
+          console.log(`🛡️ [Anti-Spam] Timed out ${message.author.tag} for 10 minutes`);
+        }
+      } catch (err) {
+        console.error('❌ [Anti-Spam] Error:', err.message);
+      }
+      return; // Don't process this message further
+    }
+  }
+
   if (message.channelId === ANNOUNCE_CHANNEL_ID) {
     try {
       const attachments = message.attachments.map(a => a.url); // Extract file/image URLs

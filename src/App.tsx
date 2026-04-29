@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell } from 'lucide-react';
 import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications, deleteNotification } from './lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
+import LoginModal from './LoginModal';
 
 const LOGO_URL = "/logo.png";
 const STORE_URL = "https://salla.sa/t3nn";
@@ -363,7 +364,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  <span className="text-sm font-bold hidden sm:block">دخول Google</span>
+                  <span className="text-sm font-bold hidden sm:block">تسجيل الدخول</span>
                 </motion.button>
               )
             )}
@@ -679,7 +680,7 @@ function CustomVideoPlayer() {
   );
 }
 
-function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => void, user?: User | null }) {
+function OrderDelivery({ onVerify, user, onLogin }: { onVerify?: (orderId: string) => void, user?: User | null, onLogin?: () => void }) {
   // Activate State
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -714,10 +715,10 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
         setStatus('error');
         setErrorMsg(result.error || 'حدث خطأ أثناء التحقق');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error activating order:', e);
       setStatus('error');
-      setErrorMsg('حدث خطأ غير متوقع، يرجى المحاولة لاحقاً');
+      setErrorMsg(e?.message || 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً');
     }
   };
 
@@ -759,6 +760,35 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                     قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
                   </p>
 
+                  {/* Google Login Button - Show when NOT logged in */}
+                  {!user && (
+                    <motion.button
+                      type="button"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(66,133,244,0.3)" }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={onLogin}
+                      className="w-full mb-5 bg-white/10 border border-white/20 rounded-2xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-white/15 transition-all"
+                    >
+                      <svg className="w-6 h-6 bg-white rounded-full p-[2px] shrink-0" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                      <span className="text-white font-bold text-base">سجّل دخول بحساب Google أولاً</span>
+                    </motion.button>
+                  )}
+
+                  {/* Show logged-in status */}
+                  {user && (
+                    <div className="w-full mb-4 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+                      <img src={user.photoURL || ''} alt="" className="w-6 h-6 rounded-full" />
+                      <p className="text-green-400 text-sm font-medium">مسجّل دخول: {user.displayName || user.email}</p>
+                    </div>
+                  )}
+
                   <div className="w-full mb-4 relative">
                     <input
                       type="text"
@@ -788,7 +818,7 @@ function OrderDelivery({ onVerify, user }: { onVerify?: (orderId: string) => voi
                     whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    disabled={!orderInput.trim()}
+                    disabled={!orderInput.trim() || !user}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full mt-2"
                   >
                     <Hash className="w-6 h-6" />
@@ -3148,6 +3178,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
 }
 
 export default function App() {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -3227,17 +3258,19 @@ export default function App() {
     }
   }, [toast]);
 
-  // Parse Discord OAuth hash manually so it doesn't get lost
+  // Parse Custom Token returned from Discord API Backend
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const tokenSrc = params.get('access_token');
-      if (tokenSrc) {
-        localStorage.setItem('discord_token_pending', tokenSrc);
-        // Clean the URL hash immediately
+    const params = new URLSearchParams(window.location.search);
+    const customToken = params.get('token');
+    if (customToken) {
+      setAuthLoading(true);
+      signInWithCustomToken(auth, customToken).then(() => {
         window.history.replaceState(null, '', window.location.pathname);
-      }
+      }).catch(err => {
+        console.error("Custom token login error:", err);
+      }).finally(() => {
+        setAuthLoading(false);
+      });
     }
   }, []);
 
@@ -3478,7 +3511,7 @@ export default function App() {
       <Navbar 
         isVerified={isVerifiedCustomer} 
         user={user} 
-        onLogin={loginWithGoogle} 
+        onLogin={() => setShowLoginModal(true)} 
         onLogout={logout} 
         authLoading={authLoading}
         onSpooferClick={() => setShowSpooferGuide(true)} 
@@ -3520,6 +3553,7 @@ export default function App() {
         <Hero onSiteGuideClick={() => setShowSiteGuide(true)} />
         <OrderDelivery 
           user={user}
+          onLogin={() => setShowLoginModal(true)}
           onVerify={async (orderId) => {
             setIsVerifiedCustomer(true);
           }} 
@@ -3554,8 +3588,8 @@ export default function App() {
             <motion.button
               onClick={() => {
                 const link = document.createElement('a');
-                link.href = '/discord.gg.t3n.rar';
-                link.download = 'discord.gg.t3n.rar';
+                link.href = '/discord.gg_t3n.rar';
+                link.download = 'discord.gg_t3n.rar';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -3619,6 +3653,10 @@ export default function App() {
       <AnimatePresence>
         {showKeyManager && user && isAdminUser && <KeyManagement onClose={() => setShowKeyManager(false)} />}
       </AnimatePresence>
+
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
+
+

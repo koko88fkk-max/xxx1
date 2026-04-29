@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+﻿import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -174,51 +174,62 @@ export async function activateOrder(orderId: string, uid: string, email: string)
     return { success: false, error: 'رقم الطلب غير صحيح' };
   }
 
-  const orderRef = doc(db, "orders", cleaned);
-  const orderSnap = await getDoc(orderRef);
+  try {
+    const orderRef = doc(db, "orders", cleaned);
+    const orderSnap = await getDoc(orderRef);
 
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
+    if (orderSnap.exists()) {
+      const orderData = orderSnap.data();
 
-    if (orderData.status === 'banned') {
-      return { success: false, error: 'رقم الطلب هذا محظور' };
+      if (orderData.status === 'banned') {
+        return { success: false, error: 'رقم الطلب هذا محظور' };
+      }
+
+      if (orderData.status === 'frozen') {
+        return { success: false, error: 'رقم الطلب هذا مُجمّد مؤقتاً' };
+      }
+
+      // Already used by someone else
+      if (orderData.usedByUid && orderData.usedByUid !== uid) {
+        return { success: false, error: 'رقم الطلب هذا مرتبط بحساب آخر' };
+      }
+
+      // Same user re-entering - allow
+      if (orderData.usedByUid === uid) {
+        return { success: true };
+      }
     }
 
-    if (orderData.status === 'frozen') {
-      return { success: false, error: 'رقم الطلب هذا مُجمّد مؤقتاً' };
-    }
+    // Activate the order (update existing)
+    const now = new Date();
+    
+    await setDoc(orderRef, {
+      status: 'active',
+      activatedAt: now.toISOString(),
+      usedByEmail: email,
+      usedByUid: uid
+    }, { merge: true });
 
-    // Already used by someone else
-    if (orderData.usedByUid && orderData.usedByUid !== uid) {
-      return { success: false, error: 'رقم الطلب هذا مرتبط بحساب آخر' };
-    }
+    // Mark user as VIP
+    const userRef = doc(db, "users", uid);
+    await setDoc(userRef, {
+      isVIP: true,
+      verifiedOrder: cleaned,
+      email: email,
+      verifiedAt: now.toISOString()
+    }, { merge: true });
 
-    // Same user re-entering - allow
-    if (orderData.usedByUid === uid) {
-      return { success: true };
+    return { success: true };
+  } catch (err: any) {
+    console.error('Firebase activateOrder error:', err);
+    if (err?.code === 'permission-denied') {
+      return { success: false, error: 'ليس لديك صلاحية لتفعيل هذا الطلب' };
     }
+    if (err?.code === 'unavailable' || err?.message?.includes('offline')) {
+      return { success: false, error: 'مشكلة في الاتصال، تأكد من الانترنت وحاول مرة ثانية' };
+    }
+    return { success: false, error: 'حدث خطأ: ' + (err?.message || 'غير معروف') };
   }
-
-  // Activate the order (create or update)
-  const now = new Date();
-  
-  await setDoc(orderRef, {
-    status: 'active',
-    activatedAt: now.toISOString(),
-    usedByEmail: email,
-    usedByUid: uid
-  }, { merge: true });
-
-  // Mark user as VIP
-  const userRef = doc(db, "users", uid);
-  await setDoc(userRef, {
-    isVIP: true,
-    verifiedOrder: cleaned,
-    email: email,
-    verifiedAt: now.toISOString()
-  }, { merge: true });
-
-  return { success: true };
 }
 
 // 📦 Delete an order
@@ -481,3 +492,73 @@ export async function deleteNotification(notifId: string) {
   const notifRef = doc(db, "notifications", notifId);
   await deleteDoc(notifRef);
 }
+
+// ==========================================
+// 📱 PHONE AUTHENTICATION
+// ==========================================
+
+export function initRecaptcha(containerId: string) {
+  // @ts-ignore
+  if (!window.recaptchaVerifier) {
+    try {
+      // @ts-ignore
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+        'size': 'invisible',
+        'callback': () => {},
+        'expired-callback': () => {
+          // @ts-ignore
+          window.recaptchaVerifier?.clear();
+          // @ts-ignore
+          window.recaptchaVerifier = null;
+        }
+      });
+    } catch (e) {
+      console.error("Recaptcha Init Error", e);
+    }
+  }
+  // @ts-ignore
+  return window.recaptchaVerifier;
+}
+
+export async function sendPhoneSMS(phoneNumber: string, appVerifier: any) {
+  try {
+    auth.languageCode = 'ar';
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    return { success: true, confirmationResult };
+  } catch (error: any) {
+    console.error('SMS Error:', error);
+    let msg = error.code + ': ' + error.message;
+    if (error.code === 'auth/invalid-phone-number') msg = 'رقم الجوال غير صحيح تأكد من كتابته بشكل صحيح (مثال: +966500000000)';
+    if (error.code === 'auth/too-many-requests') msg = 'حدث خطأ، يرجى المحاولة بعد قليل';
+    return { success: false, error: msg };
+  }
+}
+
+export async function verifyPhoneOTP(confirmationResult: any, code: string) {
+  try {
+    const result = await confirmationResult.confirm(code);
+    const user = result.user;
+    
+    // Save or update user login in Firestore
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.phoneNumber, // Use phone number as identifier
+        isVIP: false,
+        verifiedOrder: null,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      });
+    } else {
+      await setDoc(userRef, { lastLoginAt: new Date().toISOString() }, { merge: true });
+    }
+    return { success: true, user };
+  } catch (error: any) {
+    console.error('OTP Verify Error:', error);
+    return { success: false, error: 'رمز التحقق غير صحيح، تأكد منه وحاول مجدداً' };
+  }
+}
+
+
+
