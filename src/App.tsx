@@ -11,6 +11,19 @@ const STORE_URL = "https://salla.sa/t3nn";
 const DISCORD_URL = "https://discord.gg/tjMWEccj3J";
 const DISCORD_OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=1462977086653464729&redirect_uri=https%3A%2F%2Ft3n-2a2i.vercel.app%2F&response_type=token&scope=identify%20guilds.join";
 
+// Capture Discord OAuth access_token from URL hash IMMEDIATELY on page load
+// Discord implicit grant returns: /#access_token=xxx&token_type=Bearer&...
+if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token')) {
+  const fragment = new URLSearchParams(window.location.hash.substring(1));
+  const accessToken = fragment.get('access_token');
+  if (accessToken) {
+    console.log('[T3N] Discord OAuth token captured from URL hash');
+    localStorage.setItem('discord_token_pending', accessToken);
+    // Clean the URL to remove the token
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+}
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
