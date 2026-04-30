@@ -3236,12 +3236,12 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[9999] overflow-y-auto"
-      style={{ background: 'radial-gradient(ellipse at center, #062411 0%, #020f05 50%, #000000 100%)' }}
+      style={{ background: 'radial-gradient(ellipse at center, #0a1930 0%, #030814 50%, #000000 100%)' }}
     >
       <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'url(/bg-fortnite-new.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', filter: 'blur(10px) brightness(0.5)' }} />
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)' }} />
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.15) 0%, transparent 70%)' }} />
 
-      <div className="sticky top-0 z-50 backdrop-blur-xl bg-[#020f05]/80 border-b border-emerald-500/20">
+      <div className="sticky top-0 z-50 backdrop-blur-xl bg-[#030814]/80 border-b border-blue-500/20">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={LOGO_URL} alt="T3N" className="w-10 h-10 object-contain rounded-lg" />
@@ -3255,30 +3255,30 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
 
       <div className="container mx-auto px-4 py-16 max-w-4xl relative z-10">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
-          <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-            <Gamepad2 className="w-10 h-10 text-emerald-400" />
+          <div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+            <Gamepad2 className="w-10 h-10 text-blue-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-emerald-200">شرح استخدام هاك فورت نايت</h1>
-          <p className="text-emerald-200/60 text-lg max-w-2xl mx-auto">اتبع الخطوات التالية بالترتيب لتشغيل الهاك بنجاح</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-200">شرح استخدام هاك فورت نايت</h1>
+          <p className="text-blue-200/60 text-lg max-w-2xl mx-auto">اتبع الخطوات التالية بالترتيب لتشغيل الهاك بنجاح</p>
         </motion.div>
 
         <div className="flex flex-col gap-12">
           {/* Section 1: Main Hack */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)] mb-6">
+            <div className="rounded-2xl p-6 md:p-8 bg-[#0a1930]/60 backdrop-blur-lg border border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.1)] mb-6">
               <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-emerald-400">1️⃣</span> شرح هاك فورت
+                <span className="text-blue-400">1️⃣</span> شرح هاك فورت
               </h4>
-              <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
+              <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] mb-6">
                 <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                   <source src="/video-fortnite-main.mp4" type="video/mp4" />
                   متصفحك لا يدعم تشغيل الفيديو
                 </video>
               </div>
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors mt-4">
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors mt-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
-                    <FileArchive className="w-6 h-6 text-emerald-400" />
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                    <FileArchive className="w-6 h-6 text-blue-400" />
                   </div>
                   <div className="text-right flex-1">
                     <h4 className="font-bold text-lg text-white">ملف هاك فورت نايت</h4>
@@ -3297,20 +3297,20 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
 
           {/* Section 2: Mouse Driver */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
+            <div className="rounded-2xl p-6 md:p-8 bg-[#0a1930]/60 backdrop-blur-lg border border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.1)]">
               <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-emerald-400">2️⃣</span> شرح تركيب تعريفات الهاك
+                <span className="text-blue-400">2️⃣</span> شرح تركيب تعريفات الهاك
               </h4>
-              <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
+              <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] mb-6">
                 <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                   <source src="/video-fortnite-driver.mp4" type="video/mp4" />
                   متصفحك لا يدعم تشغيل الفيديو
                 </video>
               </div>
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors mt-4">
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors mt-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
-                    <FileArchive className="w-6 h-6 text-emerald-400" />
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                    <FileArchive className="w-6 h-6 text-blue-400" />
                   </div>
                   <div className="text-right flex-1">
                     <h4 className="font-bold text-lg text-white">Mouse Driver</h4>
