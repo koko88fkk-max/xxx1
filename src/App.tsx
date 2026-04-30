@@ -3238,7 +3238,7 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
       className="fixed inset-0 z-[9999] overflow-y-auto"
       style={{ background: 'radial-gradient(ellipse at center, #062411 0%, #020f05 50%, #000000 100%)' }}
     >
-      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'url(/bg-fortnite.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', filter: 'blur(10px) brightness(0.5)' }} />
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'url(/bg-fortnite-new.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', filter: 'blur(10px) brightness(0.5)' }} />
       <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)' }} />
 
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-[#020f05]/80 border-b border-emerald-500/20">
@@ -3262,29 +3262,20 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
           <p className="text-emerald-200/60 text-lg max-w-2xl mx-auto">اتبع الخطوات التالية بالترتيب لتشغيل الهاك بنجاح</p>
         </motion.div>
 
-        {/* Video Section */}
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="mb-8">
-          <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
-            <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-emerald-400">👇</span> فيديو الشرح
-            </h4>
-            <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
-                <source src="/video-fortnite.mp4" type="video/mp4" />
-                متصفحك لا يدعم تشغيل الفيديو
-              </video>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Downloads Section */}
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="mb-8">
-          <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
-            <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <span className="text-emerald-400">📁</span> ملفات الهاك
-            </h4>
-            <div className="flex flex-col gap-4 w-full">
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors">
+        <div className="flex flex-col gap-12">
+          {/* Section 1: Main Hack */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)] mb-6">
+              <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="text-emerald-400">1️⃣</span> شرح هاك فورت
+              </h4>
+              <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
+                <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+                  <source src="/video-fortnite-main.mp4" type="video/mp4" />
+                  متصفحك لا يدعم تشغيل الفيديو
+                </video>
+              </div>
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors mt-4">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
                     <FileArchive className="w-6 h-6 text-emerald-400" />
@@ -3301,8 +3292,22 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
                   <Download className="w-5 h-5" /> تحميل الملف
                 </button>
               </div>
+            </div>
+          </motion.div>
 
-              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors">
+          {/* Section 2: Mouse Driver */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
+              <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="text-emerald-400">2️⃣</span> شرح تركيب تعريفات الهاك
+              </h4>
+              <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
+                <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+                  <source src="/video-fortnite-driver.mp4" type="video/mp4" />
+                  متصفحك لا يدعم تشغيل الفيديو
+                </video>
+              </div>
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors mt-4">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
                     <FileArchive className="w-6 h-6 text-emerald-400" />
@@ -3320,8 +3325,8 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
                 </button>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </motion.div>,
     document.body
