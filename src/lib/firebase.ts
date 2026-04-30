@@ -1,4 +1,4 @@
-﻿import { initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment, onSnapshot } from "firebase/firestore";
 
@@ -166,7 +166,7 @@ export function isValidOrderFormat(value: string): boolean {
 }
 
 // 📦 Validate and activate an order number
-export async function activateOrder(orderId: string, uid: string, email: string): Promise<{ success: boolean; error?: string }> {
+export async function activateOrder(orderId: string, uid: string, email: string): Promise<{ success: boolean; error?: string; productType?: string }> {
   const cleaned = orderId.trim();
   
   // Validate format: 2XXXXXXXX (9 digits starting with 2)
@@ -194,11 +194,14 @@ export async function activateOrder(orderId: string, uid: string, email: string)
         return { success: false, error: 'رقم الطلب هذا مرتبط بحساب آخر' };
       }
 
-      // Same user re-entering - allow
+      // Same user re-entering - allow and return productType
       if (orderData.usedByUid === uid) {
-        return { success: true };
+        return { success: true, productType: orderData.productType || 'spoofer' };
       }
     }
+
+    // Determine product type from order document (set by Make)
+    const productType = orderSnap.exists() ? (orderSnap.data()?.productType || 'spoofer') : 'spoofer';
 
     // Activate the order (update existing)
     const now = new Date();
@@ -210,16 +213,17 @@ export async function activateOrder(orderId: string, uid: string, email: string)
       usedByUid: uid
     }, { merge: true });
 
-    // Mark user as VIP
+    // Mark user as VIP with productType
     const userRef = doc(db, "users", uid);
     await setDoc(userRef, {
       isVIP: true,
       verifiedOrder: cleaned,
+      productType: productType,
       email: email,
       verifiedAt: now.toISOString()
     }, { merge: true });
 
-    return { success: true };
+    return { success: true, productType };
   } catch (err: any) {
     console.error('Firebase activateOrder error:', err);
     if (err?.code === 'permission-denied') {
@@ -231,6 +235,7 @@ export async function activateOrder(orderId: string, uid: string, email: string)
     return { success: false, error: 'حدث خطأ: ' + (err?.message || 'غير معروف') };
   }
 }
+
 
 // 📦 Delete an order
 export async function deleteOrder(orderId: string) {

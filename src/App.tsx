@@ -718,7 +718,7 @@ function CustomVideoPlayer() {
   );
 }
 
-function OrderDelivery({ onVerify, user, onLogin, onFortniteClick }: { onVerify?: (orderId: string) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void }) {
+function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }: { onVerify?: (orderId: string) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, productType?: string }) {
   // Activate State
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -898,38 +898,67 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick }: { onVerify?
                   <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك للأبد</p>
 
                   <div className="flex flex-col gap-4 w-full">
-                    <motion.div 
-                      whileHover={{ y: -2 }}
-                      className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                          <FileArchive className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="text-right flex-1">
-                          <h4 className="font-bold text-lg text-white">ملف السبوفر</h4>
-                          <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
-                        </div>
-                      </div>
-                      <motion.button 
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = '/discord.gg_t3n.rar';
-                          link.download = 'discord.gg_t3n.rar';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        }}
-                        onContextMenu={(e) => e.preventDefault()}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                      >
-                        <Download className="w-5 h-5" />
-                        تحميل الملفات
-                      </motion.button>
-                    </motion.div>
 
+                    {/* === SPOOFER SECTION - shown only for spoofer product === */}
+                    {(!productType || productType === 'spoofer') && (
+                      <motion.div 
+                        whileHover={{ y: -2 }}
+                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                            <FileArchive className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-right flex-1">
+                            <h4 className="font-bold text-lg text-white">ملف السبوفر</h4>
+                            <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
+                          </div>
+                        </div>
+                        <motion.button 
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = '/discord.gg_t3n.rar';
+                            link.download = 'discord.gg_t3n.rar';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          onContextMenu={(e) => e.preventDefault()}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <Download className="w-5 h-5" />
+                          تحميل ملف السبوفر
+                        </motion.button>
+                      </motion.div>
+                    )}
+
+                    {/* === FORTNITE HACK SECTION - shown only for fortnite product === */}
+                    {productType === 'fortnite' && (
+                      <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                            <Gamepad2 className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-right flex-1">
+                            <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
+                            <p className="text-xs text-zinc-400 mt-1">ملفات وشرح الهاك</p>
+                          </div>
+                        </div>
+                        <motion.button 
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={onFortniteClick}
+                          className="w-full bg-blue-500 text-white hover:bg-blue-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                        >
+                          <MonitorPlay className="w-5 h-5" />
+                          الانتقال لتحميل الملفات و مشاهدة فيديو شرح الهاك
+                        </motion.button>
+                      </div>
+                    )}
+
+                    {/* === DISCORD ROLE - shown for ALL products === */}
                     <motion.div 
                       whileHover={{ y: -2 }}
                       className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-[#5865F2]/30 transition-colors"
@@ -954,27 +983,6 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick }: { onVerify?
                         ربط الحساب وإستلام الرتبة
                       </motion.button>
                     </motion.div>
-
-                    <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                          <Gamepad2 className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="text-right flex-1">
-                          <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
-                          <p className="text-xs text-zinc-400 mt-1">ملفات وشرح الهاك</p>
-                        </div>
-                      </div>
-                      <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={onFortniteClick}
-                        className="w-full bg-blue-500 text-white hover:bg-blue-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                      >
-                        <MonitorPlay className="w-5 h-5" />
-                        الانتقال لتحميل الملفات و مشاهدة فيديو شرح الهاك
-                      </motion.button>
-                    </div>
 
                   </div>
                   
@@ -3349,6 +3357,7 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
 export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
+  const [productType, setProductType] = useState<string>('spoofer'); // 'spoofer' | 'fortnite'
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -3479,6 +3488,22 @@ export default function App() {
 
         const isVIP = await checkUserVIP(currentUser.uid);
         setIsVerifiedCustomer(isVIP);
+
+        // Load productType from Firestore user document
+        if (isVIP) {
+          try {
+            const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+            const { db: firestoreDb } = await import('./lib/firebase');
+            const userDocRef = firestoreDoc(firestoreDb, 'users', currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+              const pt = userDocSnap.data()?.productType;
+              if (pt) setProductType(pt);
+            }
+          } catch (e) {
+            console.log('Could not load productType, using default');
+          }
+        }
 
         const isAdm = await checkIsAdmin(currentUser.email);
         setIsAdminUser(isAdm);
@@ -3727,8 +3752,22 @@ export default function App() {
           onLogin={() => setShowLoginModal(true)}
           onVerify={async (orderId) => {
             setIsVerifiedCustomer(true);
+            // Get productType from the activated order
+            try {
+              const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+              const { db: firestoreDb } = await import('./lib/firebase');
+              const orderDocRef = firestoreDoc(firestoreDb, 'orders', orderId);
+              const orderDocSnap = await getDoc(orderDocRef);
+              if (orderDocSnap.exists()) {
+                const pt = orderDocSnap.data()?.productType;
+                if (pt) setProductType(pt);
+              }
+            } catch (e) {
+              console.log('Could not read productType from order');
+            }
           }}
           onFortniteClick={() => setShowFortniteGuide(true)}
+          productType={productType}
         />
         <Products />
         <Reviews />
