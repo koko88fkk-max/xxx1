@@ -202,7 +202,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                     </button>
                     <button 
                       onClick={onFortniteClick}
-                      className="text-emerald-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
+                      className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
                     >
                       <Gamepad2 className="w-4 h-4" />
                       شرح هاك فورت
@@ -461,7 +461,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   </button>
                   <button 
                     onClick={() => { setMobileMenuOpen(false); onFortniteClick?.(); }}
-                    className="text-emerald-400 font-bold flex items-center justify-center gap-2 bg-emerald-500/10 px-6 py-3 rounded-2xl border border-emerald-500/20 w-full hover:bg-emerald-500/20 transition-colors"
+                    className="text-blue-400 font-bold flex items-center justify-center gap-2 bg-blue-500/10 px-6 py-3 rounded-2xl border border-blue-500/20 w-full hover:bg-blue-500/20 transition-colors"
                   >
                     <Gamepad2 className="w-5 h-5" />
                     شرح هاك فورت
@@ -942,10 +942,10 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick }: { onVerify?
                       </motion.button>
                     </motion.div>
 
-                    <div className="bg-black/40 border border-emerald-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
+                    <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
-                          <Gamepad2 className="w-6 h-6 text-emerald-400" />
+                        <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                          <Gamepad2 className="w-6 h-6 text-blue-400" />
                         </div>
                         <div className="text-right flex-1">
                           <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
@@ -956,7 +956,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick }: { onVerify?
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={onFortniteClick}
-                        className="w-full bg-emerald-500 text-white hover:bg-emerald-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                        className="w-full bg-blue-500 text-white hover:bg-blue-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
                       >
                         <MonitorPlay className="w-5 h-5" />
                         الانتقال لتحميل الملفات و مشاهدة فيديو شرح الهاك
