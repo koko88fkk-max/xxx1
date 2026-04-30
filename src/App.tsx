@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell } from 'lucide-react';
@@ -101,7 +101,7 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
   return <div className="perspective-1000">{content}</div>;
 }
 
-function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean }) {
+function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onFortniteClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onFortniteClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
   const [expandedNotif, setExpandedNotif] = useState<any>(null);
@@ -184,13 +184,31 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   <Wrench className="w-4 h-4" />
                   حل مشاكل عامة
                 </button>
-                <button 
-                  onClick={onSpooferClick}
-                  className="text-yellow-400 hover:text-yellow-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-yellow-500/10 px-4 py-1.5 rounded-full border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
-                >
-                  <Cpu className="w-4 h-4" />
-                  شرح السبوفر
-                </button>
+                <div className="relative group">
+                  <button 
+                    className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                  >
+                    <List className="w-4 h-4" />
+                    اختيار المنتج
+                    <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                  </button>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
+                    <button 
+                      onClick={onSpooferClick}
+                      className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
+                    >
+                      <Cpu className="w-4 h-4" />
+                      شرح السبوفر
+                    </button>
+                    <button 
+                      onClick={onFortniteClick}
+                      className="text-emerald-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
+                    >
+                      <Gamepad2 className="w-4 h-4" />
+                      شرح هاك فورت
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -436,12 +454,18 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   </button>
                   <button 
                     onClick={() => { setMobileMenuOpen(false); onSpooferClick?.(); }}
-                    className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full"
+                    className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full hover:bg-yellow-500/20 transition-colors"
                   >
                     <Cpu className="w-5 h-5" />
                     شرح السبوفر
                   </button>
-                </div>
+                  <button 
+                    onClick={() => { setMobileMenuOpen(false); onFortniteClick?.(); }}
+                    className="text-emerald-400 font-bold flex items-center justify-center gap-2 bg-emerald-500/10 px-6 py-3 rounded-2xl border border-emerald-500/20 w-full hover:bg-emerald-500/20 transition-colors"
+                  >
+                    <Gamepad2 className="w-5 h-5" />
+                    شرح هاك فورت
+                  </button>
               )}
             </motion.div>
           </motion.div>
@@ -451,7 +475,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
   );
 }
 
-function Hero({ onSiteGuideClick }: { onSiteGuideClick: () => void }) {
+function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => void, onFortniteClick: () => void }) {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Ambient Lighting */}
@@ -869,7 +893,7 @@ function OrderDelivery({ onVerify, user, onLogin }: { onVerify?: (orderId: strin
                           <FileArchive className="w-6 h-6 text-blue-400" />
                         </div>
                         <div className="text-right flex-1">
-                          <h4 className="font-bold text-lg text-white">ملفات الطلب</h4>
+                          <h4 className="font-bold text-lg text-white">ملف السبوفر</h4>
                           <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
                         </div>
                       </div>
@@ -916,6 +940,28 @@ function OrderDelivery({ onVerify, user, onLogin }: { onVerify?: (orderId: strin
                         ربط الحساب وإستلام الرتبة
                       </motion.button>
                     </motion.div>
+
+                    <div className="bg-black/40 border border-emerald-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
+                          <Gamepad2 className="w-6 h-6 text-emerald-400" />
+                        </div>
+                        <div className="text-right flex-1">
+                          <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
+                          <p className="text-xs text-zinc-400 mt-1">ملفات وشرح الهاك</p>
+                        </div>
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={onFortniteClick}
+                        className="w-full bg-emerald-500 text-white hover:bg-emerald-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <MonitorPlay className="w-5 h-5" />
+                        الانتقال لتحميل الملفات و مشاهدة فيديو شرح الهاك
+                      </motion.button>
+                    </div>
+
                   </div>
                   
                   <button 
@@ -3177,6 +3223,110 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
   );
 }
 
+function FortniteGuide({ onClose }: { onClose: () => void }) {
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, []);
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[9999] overflow-y-auto"
+      style={{ background: 'radial-gradient(ellipse at center, #062411 0%, #020f05 50%, #000000 100%)' }}
+    >
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'url(/bg-fortnite.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', filter: 'blur(10px) brightness(0.5)' }} />
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)' }} />
+
+      <div className="sticky top-0 z-50 backdrop-blur-xl bg-[#020f05]/80 border-b border-emerald-500/20">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={LOGO_URL} alt="T3N" className="w-10 h-10 object-contain rounded-lg" />
+            <span className="font-bold text-xl text-white">شرح استخدام هاك فورت نايت</span>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all border border-white/10">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-16 max-w-4xl relative z-10">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
+          <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+            <Gamepad2 className="w-10 h-10 text-emerald-400" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-emerald-200">شرح استخدام هاك فورت نايت</h1>
+          <p className="text-emerald-200/60 text-lg max-w-2xl mx-auto">اتبع الخطوات التالية بالترتيب لتشغيل الهاك بنجاح</p>
+        </motion.div>
+
+        {/* Video Section */}
+        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="mb-8">
+          <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
+            <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-emerald-400">👇</span> فيديو الشرح
+            </h4>
+            <div className="rounded-xl overflow-hidden border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)] mb-6">
+              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+                <source src="/video-fortnite.mp4" type="video/mp4" />
+                متصفحك لا يدعم تشغيل الفيديو
+              </video>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Downloads Section */}
+        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="mb-8">
+          <div className="rounded-2xl p-6 md:p-8 bg-[#062411]/60 backdrop-blur-lg border border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.1)]">
+            <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="text-emerald-400">📁</span> ملفات الهاك
+            </h4>
+            <div className="flex flex-col gap-4 w-full">
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
+                    <FileArchive className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div className="text-right flex-1">
+                    <h4 className="font-bold text-lg text-white">ملف هاك فورت نايت</h4>
+                    <p className="text-xs text-zinc-400 mt-1">الملف الرئيسي للهاك</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { const a=document.createElement('a'); a.href='/t3n-fortnite.rar'; a.download='T3N Fortnite.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
+                  className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Download className="w-5 h-5" /> تحميل الملف
+                </button>
+              </div>
+
+              <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-emerald-500/30 transition-colors">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shrink-0">
+                    <FileArchive className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div className="text-right flex-1">
+                    <h4 className="font-bold text-lg text-white">Mouse Driver</h4>
+                    <p className="text-xs text-zinc-400 mt-1">هو عباره عن ملف تعريفات هاك فورت نايت مهم تحميله عشان الهاك يعملل بدون مشاكل</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => { const a=document.createElement('a'); a.href='/mouse-driver.rar'; a.download='Mouse Driver.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
+                  className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Download className="w-5 h-5" /> تحميل الملف
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>,
+    document.body
+  );
+}
+
 export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
@@ -3184,6 +3334,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showSpooferGuide, setShowSpooferGuide] = useState(false);
+  const [showFortniteGuide, setShowFortniteGuide] = useState(false);
   const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -3515,6 +3666,7 @@ export default function App() {
         onLogout={logout} 
         authLoading={authLoading}
         onSpooferClick={() => setShowSpooferGuide(true)} 
+        onFortniteClick={() => setShowFortniteGuide(true)}
         onTroubleshootClick={() => setShowTroubleshoot(true)}
         notifications={notifications}
         unreadCount={unreadCount}
@@ -3550,7 +3702,7 @@ export default function App() {
         </motion.button>
       )}
       <main>
-        <Hero onSiteGuideClick={() => setShowSiteGuide(true)} />
+        <Hero onSiteGuideClick={() => setShowSiteGuide(true)} onFortniteClick={() => setShowFortniteGuide(true)} />
         <OrderDelivery 
           user={user}
           onLogin={() => setShowLoginModal(true)}
@@ -3641,6 +3793,11 @@ export default function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {showSpooferGuide && <SpooferGuide onClose={() => setShowSpooferGuide(false)} />}
+        {showFortniteGuide && <FortniteGuide onClose={() => setShowFortniteGuide(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showTroubleshoot && <TroubleshootGuide onClose={() => setShowTroubleshoot(false)} />}
       </AnimatePresence>
 
@@ -3658,5 +3815,8 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
