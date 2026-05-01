@@ -261,6 +261,13 @@ export async function deleteKey(keyId: string) {
   await deleteDoc(ref);
 }
 
+export async function deleteAllKeys() {
+  const snap = await getDocs(collection(db, "keys"));
+  for (const d of snap.docs) {
+    await deleteKey(d.id);
+  }
+}
+
 export async function banKey(keyId: string) {
   const ref = doc(db, "keys", keyId);
   const snap = await getDoc(ref);

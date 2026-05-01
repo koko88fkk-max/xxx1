@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, deleteAllKeys, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 import LoginModal from './LoginModal';
 
@@ -114,7 +114,7 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
   return <div className="perspective-1000">{content}</div>;
 }
 
-function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onFortniteClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onFortniteClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean }) {
+function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onFortniteClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false, activatedProducts = [] }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onFortniteClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean, activatedProducts?: string[] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
   const [expandedNotif, setExpandedNotif] = useState<any>(null);
@@ -197,31 +197,37 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   <Wrench className="w-4 h-4" />
                   حل مشاكل عامة
                 </button>
-                <div className="relative group">
-                  <button 
-                    className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
-                  >
-                    <List className="w-4 h-4" />
-                    اختيار المنتج
-                    <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                  </button>
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
+                {activatedProducts.length > 0 && (
+                  <div className="relative group">
                     <button 
-                      onClick={onSpooferClick}
-                      className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
+                      className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
                     >
-                      <Cpu className="w-4 h-4" />
-                      شرح السبوفر
+                      <List className="w-4 h-4" />
+                      اختيار المنتج
+                      <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
                     </button>
-                    <button 
-                      onClick={onFortniteClick}
-                      className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right"
-                    >
-                      <Gamepad2 className="w-4 h-4" />
-                      شرح هاك فورت
-                    </button>
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
+                      {activatedProducts.includes('spoofer') && (
+                        <button 
+                          onClick={onSpooferClick}
+                          className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
+                        >
+                          <Cpu className="w-4 h-4" />
+                          شرح السبوفر
+                        </button>
+                      )}
+                      {activatedProducts.includes('fortnite') && (
+                        <button 
+                          onClick={onFortniteClick}
+                          className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
+                        >
+                          <Gamepad2 className="w-4 h-4" />
+                          شرح هاك فورت
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -2437,6 +2443,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   };
 
   const handleDelete = async (id: string) => { if (!confirm(`حذف المفتاح ${id}؟`)) return; setActionLoading(id); await deleteKey(id); await loadKeys(); setActionLoading(null); };
+  const handleDeleteAll = async () => { if (!confirm('⚠️ تحذير: هل أنت متأكد من رغبتك في حذف جميع المفاتيح بالكامل من الموقع؟ هذا الإجراء لا يمكن التراجع عنه وسيلغي منتجات كل من فعلها.')) return; setActionLoading('all'); await deleteAllKeys(); await loadKeys(); setActionLoading(null); };
   const handleBan = async (id: string) => { if (!confirm(`حظر المفتاح ${id}؟`)) return; setActionLoading(id); await banKey(id); await loadKeys(); setActionLoading(null); };
   const handleUnban = async (id: string) => { if (!confirm(`فك حظر ${id}؟`)) return; setActionLoading(id); await unbanKey(id); await loadKeys(); setActionLoading(null); };
   const handleFreeze = async (id: string) => { if (!confirm(`تجميد ${id}؟`)) return; setActionLoading(id); await freezeKey(id); await loadKeys(); setActionLoading(null); };
@@ -2468,34 +2475,6 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
     if (activeTab === 'frozen') return k.status === 'frozen';
     return true;
   });
-
-  const getOrderStatus = (k: any) => {
-    if (k.status === 'banned') return { text: 'محظور', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: '🚫' };
-    if (k.status === 'frozen') return { text: 'مُجمّد', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: '❄️' };
-    if (k.status === 'active') return { text: 'نشط', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: '✅' };
-    return { text: 'غير معروف', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30', icon: '❓' };
-  };
-
-  const formatDuration = (dateString: string) => {
-    const actDate = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - actDate.getTime();
-    
-    if (diffMs < 0) return 'الآن';
-    
-    const minutes = Math.floor(diffMs / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const months = Math.floor(days / 30);
-    const years = Math.floor(days / 365);
-
-    if (years > 0) return `منذ ${years} ${years === 1 ? 'سنة' : 'سنوات'}`;
-    if (months > 0) return `منذ ${months} ${months === 1 ? 'شهر' : 'أشهر'}`;
-    if (days > 0) return `منذ ${days} ${days === 1 ? 'يوم' : 'أيام'}`;
-    if (hours > 0) return `منذ ${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
-    if (minutes > 0) return `منذ ${minutes} ${minutes === 1 ? 'دقيقة' : 'دقائق'}`;
-    return 'منذ لحظات';
-  };
 
   return createPortal(
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99998] bg-black/90 backdrop-blur-xl overflow-y-auto">
