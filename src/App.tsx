@@ -3654,10 +3654,6 @@ export default function App() {
     );
   }
 
-  if (appLoading) {
-    return <LoadingScreen />;
-  }
-
   // Show Maintenance Screen if active and user is not admin
   if (isMaintenance && !isAdminUser && !authLoading) {
     return <MaintenanceScreen />;
