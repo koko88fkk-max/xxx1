@@ -197,20 +197,22 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   <Wrench className="w-4 h-4" />
                   حل مشاكل عامة
                 </button>
-                {activatedProducts.length > 0 && (
-                  <div className="relative group">
-                    <button 
-                      className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
-                    >
-                      <List className="w-4 h-4" />
-                      اختيار المنتج
-                      <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                    </button>
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
+                <div className="relative group">
+                  <button 
+                    className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                  >
+                    <List className="w-4 h-4" />
+                    اختيار المنتج
+                    <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
+                    <div className="bg-[#0a0a0f] border border-emerald-500/20 rounded-xl shadow-xl overflow-hidden flex flex-col p-1 gap-1">
                       {activatedProducts.includes('spoofer') && (
                         <button 
                           onClick={onSpooferClick}
-                          className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
+                          className="w-full text-right px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                           <Cpu className="w-4 h-4" />
                           شرح السبوفر
@@ -219,15 +221,20 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                       {activatedProducts.includes('fortnite') && (
                         <button 
                           onClick={onFortniteClick}
-                          className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
+                          className="w-full text-right px-4 py-3 text-sm text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                           <Gamepad2 className="w-4 h-4" />
                           شرح هاك فورت
                         </button>
                       )}
+                      {activatedProducts.length === 0 && (
+                        <div className="px-4 py-3 text-sm text-zinc-500 text-center font-bold">
+                          لا توجد منتجات مفعلة
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
+                  </div>
               </div>
             )}
           </div>
@@ -488,6 +495,11 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                       <Gamepad2 className="w-5 h-5" />
                       شرح هاك فورت
                     </button>
+                  )}
+                  {activatedProducts.length === 0 && (
+                    <div className="w-full text-center py-3 text-zinc-500 font-bold bg-zinc-900/50 rounded-2xl border border-zinc-800">
+                      لا توجد منتجات مفعلة
+                    </div>
                   )}
                 </div>
               )}
