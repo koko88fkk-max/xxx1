@@ -551,11 +551,6 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
             </div>
           </motion.div>
           
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 mb-6 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-            <span className="text-yellow-400 text-sm font-bold tracking-wider">الإصدار المتميز</span>
-          </div>
-
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-transparent bg-clip-text text-gradient-gold drop-shadow-2xl">
             تعن T3N
           </h1>
