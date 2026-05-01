@@ -3212,7 +3212,7 @@ function FortniteHackGuide({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
                 <button 
-                  onClick={() => { const a=document.createElement('a'); a.href='/t3n-fortnite.rar'; a.download='T3N Fortnite.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
+                  onClick={() => { const a=document.createElement('a'); a.href='/External_T3N.rar'; a.download='External_T3N.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
                   className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
                 >
                   <Download className="w-5 h-5" /> تحميل الملف
