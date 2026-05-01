@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, OAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { getAuth, OAuthProvider, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -19,6 +19,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const provider = new OAuthProvider('discord.com');
+export const googleProvider = new GoogleAuthProvider();
 
 // 🌍 Detect user country/city from IP
 async function detectUserGeo(): Promise<{ country: string; city: string; countryCode: string } | null> {
@@ -31,6 +32,53 @@ async function detectUserGeo(): Promise<{ country: string; city: string; country
     return null;
   } catch {
     return null;
+  }
+}
+
+export async function loginWithGoogle() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    
+    // Detect geo location
+    const geo = await detectUserGeo();
+    
+    // Save or update user login in Firestore
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+    
+    const geoData = geo ? {
+      country: geo.country,
+      city: geo.city,
+      countryCode: geo.countryCode
+    } : {};
+    
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        isVIP: false,
+        verifiedOrder: null,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        displayName: user.displayName || 'عميل',
+        photoURL: user.photoURL || null,
+        provider: 'google',
+        ...geoData
+      });
+    } else {
+      await setDoc(userRef, { 
+        lastLoginAt: new Date().toISOString(),
+        displayName: user.displayName || docSnap.data().displayName,
+        photoURL: user.photoURL || docSnap.data().photoURL,
+        provider: 'google',
+        ...geoData
+      }, { merge: true });
+    }
+    
+    return user;
+  } catch (error) {
+    console.error("Google login error:", error);
+    throw error;
   }
 }
 
