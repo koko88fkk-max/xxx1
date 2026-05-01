@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { getAuth, OAuthProvider, signInWithPopup, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit, deleteDoc, increment, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -18,7 +18,7 @@ const MAIN_ADMIN_EMAIL = "koko.88.fkk@gmail.com";
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const provider = new GoogleAuthProvider();
+export const provider = new OAuthProvider('discord.com');
 
 // 🌍 Detect user country/city from IP
 async function detectUserGeo(): Promise<{ country: string; city: string; countryCode: string } | null> {
@@ -34,7 +34,7 @@ async function detectUserGeo(): Promise<{ country: string; city: string; country
   }
 }
 
-export async function loginWithGoogle() {
+export async function loginWithDiscord() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
@@ -149,7 +149,7 @@ export async function checkUserVIP(uid: string) {
           continue;
         }
         hasValidKey = true;
-        const pt = kd.productType || 'spoofer'; // Fallback for old keys
+        const pt = kd.productType === 'spoofer' ? 'superstar' : (kd.productType || 'superstar'); // Fallback for old keys
         if (pt && pt !== '') {
           newProducts.add(pt);
         }
@@ -192,7 +192,7 @@ export function isValidKeyFormat(value: string): boolean {
   return /^T3N-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}$/.test(value.trim());
 }
 
-export async function createKeys(count: number, productType: 'spoofer' | 'fortnite'): Promise<string[]> {
+export async function createKeys(count: number, productType: 'fortnite' | 'superstar' | 'fortnite-hack'): Promise<string[]> {
   const created: string[] = [];
   const now = new Date().toISOString();
   for (let i = 0; i < Math.min(count, 100); i++) {
@@ -217,53 +217,26 @@ export async function activateKey(keyId: string, uid: string, email: string, use
   if (!isValidKeyFormat(cleaned)) {
     return { success: false, error: 'صيغة المفتاح غير صحيحة. الصيغة الصحيحة: T3N-XXXXXX-XXXXXX' };
   }
+  
   try {
-    const keyRef = doc(db, "keys", cleaned);
-    const keySnap = await getDoc(keyRef);
-    if (!keySnap.exists()) return { success: false, error: 'المفتاح غير موجود' };
-    const kd = keySnap.data();
-    if (kd.status === 'banned') return { success: false, error: 'هذا المفتاح محظور' };
-    if (kd.status === 'frozen') return { success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' };
-    if (kd.usedByUid && kd.usedByUid !== uid) return { success: false, error: 'هذا المفتاح مرتبط بحساب آخر' };
-    const pt = kd.productType || 'spoofer'; // Fallback for old keys
+    const response = await fetch('/api/activate-key', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        keyId: cleaned,
+        uid,
+        email,
+        userData
+      })
+    });
 
-    if (kd.usedByUid === uid) {
-      const userRef = doc(db, "users", uid);
-      const userSnap = await getDoc(userRef);
-      let prods: string[] = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
-      
-      // Auto-repair on re-activation if missing
-      if (pt && !prods.includes(pt)) {
-        prods.push(pt);
-        await setDoc(userRef, { activatedProducts: prods }, { merge: true });
-      }
-
-      return { success: true, productType: pt, activatedProducts: prods };
-    }
-    const now = new Date();
-    await setDoc(keyRef, {
-      status: 'active', activatedAt: now.toISOString(),
-      usedByUid: uid, usedByEmail: email,
-      usedByName: userData?.displayName || null,
-      usedByPhoto: userData?.photoURL || null,
-      usedByProvider: userData?.provider || 'google',
-      productType: pt
-    }, { merge: true });
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-    const existingProducts: string[] = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
-    const existingKeys: string[] = userSnap.exists() ? (userSnap.data().activatedKeys || []) : [];
-    if (!existingProducts.includes(pt)) existingProducts.push(pt);
-    if (!existingKeys.includes(cleaned)) existingKeys.push(cleaned);
-    await setDoc(userRef, {
-      isVIP: true, activatedProducts: existingProducts, activatedKeys: existingKeys,
-      email, verifiedAt: now.toISOString()
-    }, { merge: true });
-    return { success: true, productType: pt, activatedProducts: existingProducts };
+    const data = await response.json();
+    return data;
   } catch (err: any) {
     console.error('activateKey error:', err);
-    if (err?.code === 'permission-denied') return { success: false, error: 'ليس لديك صلاحية' };
-    return { success: false, error: 'حدث خطأ: ' + (err?.message || 'غير معروف') };
+    return { success: false, error: 'فشل الاتصال بالسيرفر. تأكد من اتصالك بالإنترنت.' };
   }
 }
 

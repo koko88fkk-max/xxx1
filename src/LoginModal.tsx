@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Loader2, ShieldCheck } from 'lucide-react';
 import { loginWithGoogle } from './lib/firebase';
@@ -56,8 +56,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
               </>
             )}
           </button>
-
-          <div className="relative flex items-center py-2"><div className="flex-grow border-t border-white/10"></div><span className="flex-shrink-0 mx-4 text-white/40 text-sm">أو</span><div className="flex-grow border-t border-white/10"></div></div>
+        <div className="relative flex items-center py-2"><div className="flex-grow border-t border-white/10"></div><span className="flex-shrink-0 mx-4 text-white/40 text-sm">أو</span><div className="flex-grow border-t border-white/10"></div></div>
 
           {/* Google Button */}
           <button disabled={loading} onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 p-4 bg-white hover:bg-gray-100 text-gray-900 rounded-2xl font-bold transition-all">

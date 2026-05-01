@@ -3,8 +3,9 @@ import axios from 'axios';
 // Product name to type mapping
 // Add your Salla product names here (case-insensitive match)
 const PRODUCT_TYPE_MAP = [
-  { keywords: ['هاك فورت', 'hack fortnite', 'fortnite hack'], type: 'fortnite' },
-  { keywords: ['فك باند', 'unban', 'ban', 'سبوفر', 'spoofer', 'perm'], type: 'spoofer' },
+  { keywords: ['هاك فورت', 'hack fortnite', 'fortnite hack', 'هاك'], type: 'fortnite-hack' },
+  { keywords: ['فورت', 'فورت نايت', 'fortnite'], type: 'fortnite' },
+  { keywords: ['فك باند', 'unban', 'ban', 'سبوفر', 'spoofer', 'perm', 'superstar', 'سوبر ستار'], type: 'superstar' },
 ];
 
 function detectProductType(productName = '') {
@@ -14,7 +15,7 @@ function detectProductType(productName = '') {
       return rule.type;
     }
   }
-  return 'spoofer'; // Default fallback
+  return 'superstar'; // Default fallback
 }
 
 export default async function handler(req, res) {

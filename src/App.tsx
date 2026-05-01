@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, deleteAllKeys, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
+import { auth, loginWithDiscord, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, deleteAllKeys, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 import LoginModal from './LoginModal';
 
@@ -114,7 +114,7 @@ function TiltCard({ children, className = "", href, target, rel }: any) {
   return <div className="perspective-1000">{content}</div>;
 }
 
-function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferClick, onFortniteClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false, activatedProducts = [] }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSpooferClick?: () => void, onFortniteClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean, activatedProducts?: string[] }) {
+function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarClick, onFortniteClick, onFortniteHackClick, onTroubleshootClick, notifications = [], unreadCount = 0, onReadNotifications, isAdminUser = false, activatedProducts = [] }: { isVerified?: boolean, user?: User | null, onLogin?: () => void, onLogout?: () => void, authLoading?: boolean, onSuperstarClick?: () => void, onFortniteClick?: () => void, onFortniteHackClick?: () => void, onTroubleshootClick?: () => void, notifications?: any[], unreadCount?: number, onReadNotifications?: () => void, isAdminUser?: boolean, activatedProducts?: string[] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
   const [expandedNotif, setExpandedNotif] = useState<any>(null);
@@ -176,10 +176,9 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
             <motion.img 
               whileHover={{ rotate: 10, scale: 1.1 }}
               src={LOGO_URL} 
-              alt="تعن T3N" 
-              className="w-10 h-10 object-contain rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
+              alt="T3N Logo" 
+              className="w-12 h-12 object-contain rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
             />
-            <span className="font-bold text-xl tracking-tight text-white drop-shadow-md">تعن T3N</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
@@ -209,21 +208,21 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   {/* Dropdown Menu */}
                   <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50">
                     <div className="bg-[#0a0a0f] border border-emerald-500/20 rounded-xl shadow-xl overflow-hidden flex flex-col p-1 gap-1">
-                      {activatedProducts.includes('spoofer') && (
+                      {activatedProducts.includes('superstar') && (
                         <button 
-                          onClick={onSpooferClick}
+                          onClick={onSuperstarClick}
                           className="w-full text-right px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                           <Cpu className="w-4 h-4" />
-                          شرح السبوفر
+                          شرح السبوفر (سوبر ستار)
                         </button>
                       )}
-                      {activatedProducts.includes('fortnite') && (
+                      {activatedProducts.includes('fortnite-hack') && (
                         <button 
-                          onClick={onFortniteClick}
-                          className="w-full text-right px-4 py-3 text-sm text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
+                          onClick={onFortniteHackClick}
+                          className="w-full text-right px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
-                          <Gamepad2 className="w-4 h-4" />
+                          <Crosshair className="w-4 h-4" />
                           شرح هاك فورت
                         </button>
                       )}
@@ -478,21 +477,21 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                     <Wrench className="w-5 h-5" />
                     حل مشاكل عامة
                   </button>
-                  {activatedProducts.includes('spoofer') && (
+                  {activatedProducts.includes('superstar') && (
                     <button 
-                      onClick={() => { setMobileMenuOpen(false); onSpooferClick?.(); }}
+                      onClick={() => { setMobileMenuOpen(false); onSuperstarClick?.(); }}
                       className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full hover:bg-yellow-500/20 transition-colors"
                     >
                       <Cpu className="w-5 h-5" />
-                      شرح السبوفر
+                      شرح السبوفر (سوبر ستار)
                     </button>
                   )}
-                  {activatedProducts.includes('fortnite') && (
+                  {activatedProducts.includes('fortnite-hack') && (
                     <button 
-                      onClick={() => { setMobileMenuOpen(false); onFortniteClick?.(); }}
-                      className="text-blue-400 font-bold flex items-center justify-center gap-2 bg-blue-500/10 px-6 py-3 rounded-2xl border border-blue-500/20 w-full hover:bg-blue-500/20 transition-colors"
+                      onClick={() => { setMobileMenuOpen(false); onFortniteHackClick?.(); }}
+                      className="text-red-400 font-bold flex items-center justify-center gap-2 bg-red-500/10 px-6 py-3 rounded-2xl border border-red-500/20 w-full hover:bg-red-500/20 transition-colors"
                     >
-                      <Gamepad2 className="w-5 h-5" />
+                      <Crosshair className="w-5 h-5" />
                       شرح هاك فورت
                     </button>
                   )}
@@ -519,18 +518,18 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
         <motion.div 
           animate={{ 
             scale: [1, 1.2, 1],
-            opacity: [0.15, 0.25, 0.15]
+            opacity: [0.08, 0.15, 0.08]
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-600/30 blur-[120px] rounded-full" 
+          className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-amber-500/30 blur-[120px] rounded-full mix-blend-screen" 
         />
         <motion.div 
           animate={{ 
             scale: [1, 1.5, 1],
-            opacity: [0.1, 0.2, 0.1]
+            opacity: [0.05, 0.12, 0.05]
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/30 blur-[120px] rounded-full" 
+          className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen" 
         />
       </div>
       
@@ -544,45 +543,52 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
           <motion.div 
             animate={{ y: [-10, 10, -10] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative mb-10"
+            className="relative mb-8"
           >
-            <div className="absolute inset-0 bg-blue-500/30 blur-[60px] rounded-full" />
-            <div className="relative z-10 p-2 rounded-3xl bg-white/5 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+            <div className="absolute inset-0 bg-yellow-500/20 blur-[60px] rounded-full" />
+            <div className="relative z-10 p-2 rounded-3xl bg-white/5 border border-yellow-500/20 shadow-[0_20px_50px_rgba(212,175,55,0.15)] backdrop-blur-md">
               <img src={LOGO_URL} alt="تعن T3N" className="w-40 h-40 md:w-48 md:h-48 object-contain rounded-2xl" />
             </div>
           </motion.div>
           
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-500 drop-shadow-lg">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 mb-6 backdrop-blur-sm">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+            <span className="text-yellow-400 text-sm font-bold tracking-wider">الإصدار المتميز</span>
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-transparent bg-clip-text text-gradient-gold drop-shadow-2xl">
             تعن T3N
           </h1>
-          <p className="text-xl md:text-2xl text-zinc-300 mb-12 max-w-2xl mx-auto leading-relaxed drop-shadow-md font-medium">
-            وجهتك الأولى للمنتجات الرقمية المتميزة. جودة، سرعة، وموثوقية في مكان واحد.
+          <p className="text-lg md:text-xl text-zinc-300 mb-12 max-w-2xl mx-auto leading-relaxed drop-shadow-md font-medium px-4">
+            وجهتك الأولى للمنتجات الرقمية الفاخرة. استمتع بتجربة استثنائية، جودة عالية، وموثوقية لا تضاهى.
           </p>
           
           <div className="flex flex-col gap-4 justify-center items-center mt-4 w-full max-w-md mx-auto">
             {/* Site Guide Button */}
             <motion.button 
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59,130,246,0.3)" }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.1)" }}
               whileTap={{ scale: 0.95 }}
               onClick={() => document.getElementById('delivery')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-4 bg-blue-600 border border-blue-500 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all w-full"
+              className="px-8 py-4 glass-panel text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all w-full relative overflow-hidden group border-white/20"
             >
-              <Hash className="w-5 h-5" />
-              استلام الطلب
+              <div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <Hash className="w-5 h-5 text-yellow-400 relative z-10" />
+              <span className="relative z-10 tracking-wide">بوابة الاستلام</span>
             </motion.button>
             
             {/* Store and Discord Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 w-full">
               <motion.a 
-                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,255,255,0.3)" }}
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(212,175,55,0.4)" }}
                 whileTap={{ scale: 0.95 }}
                 href={STORE_URL} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-8 py-4 bg-white text-black font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-colors w-full sm:flex-1"
+                className="px-8 py-4 bg-gradient-gold text-black font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(212,175,55,0.2)] transition-all w-full sm:flex-1 relative overflow-hidden group"
               >
-                <ShoppingBag className="w-5 h-5" />
-                تصفح المتجر
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-2xl" />
+                <ShoppingBag className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">تصفح المتجر</span>
               </motion.a>
               <motion.a 
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(88,101,242,0.3)" }}
@@ -740,7 +746,7 @@ function CustomVideoPlayer() {
   );
 }
 
-function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClick, activatedProducts }: { onVerify?: (keyId: string, products: string[]) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, onSpooferClick?: () => void, activatedProducts?: string[] }) {
+function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteClick, onFortniteHackClick, activatedProducts }: { onVerify?: (keyId: string, products: string[]) => void, user?: User | null, onLogin?: () => void, onSuperstarClick?: () => void, onFortniteClick?: () => void, onFortniteHackClick?: () => void, activatedProducts?: string[] }) {
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -749,7 +755,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderInput.trim()) return;
-    if (!user) { setStatus('error'); setErrorMsg('يجب تسجيل الدخول بحساب جوجل أولاً'); return; }
+    if (!user) { setStatus('error'); setErrorMsg('يجب تسجيل الدخول بحساب ديسكورد أو جوجل أولاً'); return; }
     if (!isValidKeyFormat(orderInput)) { setStatus('error'); setErrorMsg('صيغة المفتاح غير صحيحة. الصيغة: T3N-XXXXXX-XXXXXX'); return; }
     setStatus('loading');
     try {
@@ -776,8 +782,8 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
           {/* Right Side: Form (Order 2 on mobile, 1 on Desktop RTL) */}
-          <TiltCard className="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
+          <TiltCard className="glass-panel-hover glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
 
             <div className="flex flex-col items-center justify-start h-full min-h-[300px] pt-4">
 
@@ -791,12 +797,12 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
                   onSubmit={handleVerify}
                   className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
                 >
-                  <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-                    <Key className="w-8 h-8 text-blue-400" />
+                  <div className="w-16 h-16 bg-gradient-gold rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(212,175,55,0.4)]">
+                    <Key className="w-8 h-8 text-black" />
                   </div>
                   <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">تفعيل المفتاح</h3>
                   <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                    أدخل مفتاح المنتج الخاص بك لاستلام مشترياتك فوراً.
+                    أدخل مفتاح المنتج الخاص بك لاستلام مشترياتك فوراً. يرجى تسجيل الدخول باستخدام جوجل أو ديسكورد.
                   </p>
 
                   {/* Google Login Button - Show when NOT logged in */}
@@ -805,10 +811,10 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
                       type="button"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(66,133,244,0.3)" }}
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(212,175,55,0.2)" }}
                       whileTap={{ scale: 0.98 }}
                       onClick={onLogin}
-                      className="w-full mb-5 bg-white/10 border border-white/20 rounded-2xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-white/15 transition-all"
+                      className="w-full mb-5 bg-white/5 border border-yellow-500/30 rounded-2xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
                     >
                       <svg className="w-6 h-6 bg-white rounded-full p-[2px] shrink-0" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -816,7 +822,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                       </svg>
-                      <span className="text-white font-bold text-base">سجّل دخول بحساب Google أولاً</span>
+                      <span className="text-white font-bold text-base">يجب تسجيل الدخول أولاً</span>
                     </motion.button>
                   )}
 
@@ -837,7 +843,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
                         if (status === 'error') setStatus('idle');
                       }}
                       placeholder="T3N-XXXXXX-XXXXXX"
-                      className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                      className="w-full bg-black/60 border border-yellow-500/30 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
                       dir="ltr"
                     />
                   </div>
@@ -854,11 +860,11 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
                   )}
 
                   <motion.button
-                    whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(37,99,235,0.4)" }}
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(212,175,55,0.4)" }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={!orderInput.trim() || !user}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 mt-2"
+                    className="w-full bg-gradient-gold text-black font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(212,175,55,0.2)] border-t border-yellow-200/30 mt-2"
                   >
                     <Key className="w-6 h-6" />
                     تفعيل المفتاح
@@ -900,70 +906,53 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
 
                   <div className="flex flex-col gap-4 w-full">
 
-                    {/* === SPOOFER SECTION === */}
-                    {(activatedProducts?.includes('spoofer') || lastActivatedType === 'spoofer') && (
+                    {/* === SUPERSTAR SECTION === */}
+                    {(activatedProducts?.includes('superstar') || lastActivatedType === 'superstar' || activatedProducts?.includes('spoofer') || lastActivatedType === 'spoofer') && (
                       <motion.div 
                         whileHover={{ y: -2 }}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
+                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-yellow-500/30 transition-colors"
                       >
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                            <FileArchive className="w-6 h-6 text-blue-400" />
+                        <div className="flex items-center gap-4 mb-4 w-full">
+                          <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center border border-yellow-500/20 shrink-0">
+                            <Cpu className="w-6 h-6 text-yellow-400" />
                           </div>
                           <div className="text-right flex-1">
-                            <h4 className="font-bold text-lg text-white">ملف السبوفر</h4>
-                            <p className="text-xs text-zinc-400 mt-1">ملف يرجى فك ضغطه يحتوي على الشروحات.</p>
+                            <h4 className="font-bold text-lg text-white">السبوفر (سوبر ستار)</h4>
+                            <p className="text-xs text-zinc-400 mt-1">منتج السبوفر والشروحات الخاصة به.</p>
                           </div>
                         </div>
-                        <motion.button 
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = '/discord.gg_t3n.rar';
-                            link.download = 'discord.gg_t3n.rar';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                          onContextMenu={(e) => e.preventDefault()}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="w-full bg-white text-black hover:bg-zinc-200 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-                        >
-                          <Download className="w-5 h-5" />
-                          تحميل ملف السبوفر
-                        </motion.button>
                         <motion.button
-                          onClick={onSpooferClick}
+                          onClick={onSuperstarClick}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-full bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-blue-500/20"
+                          className="w-full bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-yellow-500/20"
                         >
                           <MonitorPlay className="w-5 h-5" />
-                          الانتقال إلى شرح السبوفر
+                          الانتقال إلى الشرح والملفات
                         </motion.button>
                       </motion.div>
                     )}
 
                     {/* === FORTNITE HACK SECTION === */}
-                    {(activatedProducts?.includes('fortnite') || lastActivatedType === 'fortnite') && (
-                      <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                            <Gamepad2 className="w-6 h-6 text-blue-400" />
+                    {(activatedProducts?.includes('fortnite-hack') || lastActivatedType === 'fortnite-hack') && (
+                      <div className="bg-black/40 border border-red-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors hover:border-red-500/50">
+                        <div className="flex items-center gap-4 mb-4 w-full">
+                          <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20 shrink-0">
+                            <Crosshair className="w-6 h-6 text-red-400" />
                           </div>
                           <div className="text-right flex-1">
                             <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
-                            <p className="text-xs text-zinc-400 mt-1">ملفات وشرح الهاك</p>
+                            <p className="text-xs text-zinc-400 mt-1">شرح وتحميل ملفات الهاك.</p>
                           </div>
                         </div>
                         <motion.button 
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={onFortniteClick}
-                          className="w-full bg-blue-500 text-white hover:bg-blue-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                          onClick={onFortniteHackClick}
+                          className="w-full bg-red-500 text-white hover:bg-red-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
                         >
                           <MonitorPlay className="w-5 h-5" />
-                          الانتقال لتحميل الملفات و مشاهدة فيديو شرح الهاك
+                          الانتقال لشرح هاك فورت نايت
                         </motion.button>
                       </div>
                     )}
@@ -1044,58 +1033,41 @@ function Products() {
   const products = [
     {
       id: 1,
-      title: "سبوفر بيرم الألعاب",
-      desc: "يدعم جميع المذربوردات وجميع حمايات الألعاب. استعمال مرة واحدة فقط للأبد. يدعم COD، Rust، VALORANT، FiveM وغيرها.",
-      url: "https://salla.sa/t3nn/EXGRXdv",
+      title: "السبوفر المتميز (سوبر ستار)",
+      desc: "أقوى أداة سبوفر تدعم جميع المذربوردات وحمايات الألعاب. استعمال مرة واحدة لفك الحظر نهائياً للأبد بضمان كامل.",
+      url: "https://salla.sa/t3nn",
       image: "/product-spoofer-perm.jpg",
       icon: <Cpu className="w-5 h-5" />,
-      tag: "الأكثر مبيعاً",
-      details: "المميزات\n\n[+] يدعم جميع مذربوردات:\nMSI · ASUS · GIGABYTE · ASROCK · HP · EVGA · MICROSTAR · AORUS · COLORFUL · LENOVO · ACER · DELL\n[+] بعض أجهزة ASUS قد لا يعمل عليها\n[+] يدعم جميع حمايات الألعاب\n[+] الألعاب المدعومة:\nCall of Duty · Rust · VALORANT · FiveM · يدعم جميع العاب أخرى\n[+] استعمال مرة واحدة فقط وقت الفك، ولا تحتاج استعماله مرة أخرى للأبد\n[+] يتم تسليم المنتج فورياً\n[+] 100% مضمون وموثوق\n[+] يتم تسليمك مفتاح فوري بعد الشراء\n\nإذا كنت بحاجة إلى مساعدة من الدعم الفني والتحكم بجهازك لتنفيذ الخطوات، يوجد رسوم قدرها 35 ريال مخصصة للخدمة.\n\nملاحظات مهمة قبل الشراء:\n[+] في بعض الأجهزة قد تحتاج إلى فورمات أو تغيير إصدار ويندوز\n[+] المنتج لا يُسترد، شغال 100%، إذا فيه خلل عندك نحن غير مسؤولين\n[+] بمجرد شرائك للمنتج: سيتم إرسال كود التفعيل على البريد الإلكتروني أو رقم الجوال"
+      tag: "الإصدار الذهبي",
+      details: "المميزات\n\n[+] يدعم جميع مذربوردات:\nMSI · ASUS · GIGABYTE · ASROCK · HP · EVGA · MICROSTAR · AORUS · COLORFUL · LENOVO · ACER · DELL\n[+] يدعم جميع حمايات الألعاب\n[+] الألعاب المدعومة:\nCall of Duty · Rust · VALORANT · FiveM · فورت نايت\n[+] استعمال مرة واحدة فقط وقت الفك، ولا تحتاج استعماله مرة أخرى للأبد\n[+] يتم تسليم المنتج فورياً\n[+] 100% مضمون وموثوق\n[+] يتم تسليمك مفتاح فوري بعد الشراء"
     },
     {
       id: 2,
-      title: "فك باند فورت نايت",
-      desc: "تغيير معلومات جهازك لإلغاء الحظر نهائياً. فك باند البطولات بنسبة نجاح 100%. تنفيذ سريع وفوري.",
-      url: "https://salla.sa/t3nn/BpwOKQa",
-      image: "/product-fortnite-unban.jpg",
-      icon: <Gamepad2 className="w-5 h-5" />,
-      tag: "مضمون",
-      details: "يقوم بتغيير معلومات جهازك إلى معلومات جديدة لإلغاء الحظر في لعبة فورت نايت نهائياً.\n\nالمميزات:\n- فك باند البطولات\n- نسبة نجاح 100%\n- فك باند نهائي بدون رجوع\n- تنفيذ سريع وفوري\n- خدمة مضمونة بالكامل\n\nدعم جميع اللوحات الأم بدون استثناء:\nASUS · MSI · GIGABYTE · ASROCK · HP · EVGA · MICROSTAR · AORUS · COLORFUL · LENOVO · ACER · DELL\n[+] يدعم جميع المذربوردات\n[+] بعض أجهزة ASUS قد لا يعمل عليها\n[+] استعمال مرة واحدة فقط وقت الفك، ولا تحتاج استعماله مرة أخرى للأبد\n\nملاحظات مهمة قبل الشراء:\n[+] في بعض الأجهزة قد تحتاج إلى فورمات أو تغيير إصدار ويندوز\n[+] المنتج لا يُسترد، شغال 100%، إذا فيه خلل عندك نحن غير مسؤولين\n[+] مبجرد شرائك للمنتج: سيتم إرسال كود التفعيل على البريد الإلكتروني أو رقم الجوال"
-    },
-    {
-      id: 3,
-      title: "سبوفر مدى الحياة VIP",
-      desc: "مفتاح خاص فيك مدى الحياة. كل ما تبندت في أي لعبة تفكه. بدون مدة انتهاء وبدون إعادة شراء.",
-      url: "https://salla.sa/t3nn/OyWpQyw",
-      image: "/product-spoofer-lifetime.jpg",
-      icon: <Shield className="w-5 h-5" />,
-      tag: "VIP",
-      details: "🎮 VIP سبوفر لجميع الألعاب\nاحصل الآن على سبوفر بيزم (مدى الحياة) مخصص لفك الباند عن جميع الألعاب بكل سهولة وأمان.\n\n🎮 يدعم جميع الألعاب الشهيرة:\nفورت نايت\nفالورانت\nرست\nديد باي داي لايت\nفايف إم\nوأي لعبة أخرى في بالك\n\n✅ ماذا تحصل عند الشراء؟\n📦 رقم طلب خاص بك مدى الحياة\nتسليم فوري لرقم الطلب\nيمكنك فك الباند في أي وقت\nبدون مدة انتهاء وبدون الحاجة لإعادة الشراء\n\n💬 آلية الاستلام وتحكم الدعم الفني متوفرة 24/7\nشرح كامل للخطوات، تحكم بجهازك مجاناً لفك الباند.\n\n♡ ضمان الخدمة مؤثر 100%\n⚠️ ملاحظة: المنتج غير قابل للاسترجاع بعد الشراء"
-    },
-    {
-      id: 4,
-      title: "طلب خاص",
-      desc: "طلب خاص تريده أنت. تواصل معنا عبر الديسكورد أو المتجر وسنلبي طلبك.",
-      url: "https://salla.sa/t3nn/jgBZWje",
-      image: "/product-custom-order.jpg",
-      icon: <Wrench className="w-5 h-5" />,
-      tag: "مخصص",
-      details: "طلب خاص\n\nطلب خاص تريده أنت\n\nإذا كنت بحاجة إلى مساعدة من الدعم الفني والتحكم بجهازك لتنفيذ الخطوات كاملة بنفسنا، يرجى التوجه هنا لدفع رسوم الخدمة 35 ريال.\n\nلدينا دعم فني جاهز لخدمتك في الديسكورد."
+      title: "هاك فورت نايت (النسخة الفاخرة)",
+      desc: "أفضل وأأمن هاك لفورت نايت بمميزات حصرية وتحديثات مستمرة للحماية من الباند. لعب آمن واحترافي.",
+      url: "https://salla.sa/t3nn",
+      image: "/product-fortnite-hack.jpg",
+      icon: <Crosshair className="w-5 h-5" />,
+      tag: "الأكثر طلباً",
+      details: "المميزات:\n- آيمبوت احترافي دقيق\n- رادار لكشف أماكن اللاعبين واللوت\n- أمان عالي جداً وتحديثات تلقائية مع كل تحديث للعبة\n- نسبة حظر شبه معدومة\n- تنفيذ سريع وفوري\n- خدمة مضمونة بالكامل\n\nملاحظات مهمة قبل الشراء:\n[+] المنتج لا يُسترد، شغال 100%\n[+] بمجرد شرائك للمنتج: سيتم إرسال كود التفعيل على البريد الإلكتروني"
     }
   ];
 
   return (
-    <section id="products" className="py-20 md:py-28 relative z-10">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent pointer-events-none" />
+    <section id="products" className="py-20 md:py-32 relative z-10">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-900/5 to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 relative z-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">منتجاتنا</h2>
-          <p className="text-zinc-400 text-lg">تصفح أفضل منتجاتنا الرقمية المتوفرة في المتجر</p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/20 bg-yellow-500/5 mb-6 backdrop-blur-sm">
+            <span className="text-yellow-500/80 text-sm font-bold tracking-widest uppercase">CATALOGUE</span>
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-transparent bg-clip-text text-gradient-gold drop-shadow-lg">منتجاتنا الحصرية</h2>
+          <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto">تشكيلة مختارة من أفضل المنتجات الرقمية المصممة لتعطيك الأفضلية</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -1107,35 +1079,35 @@ function Products() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.15 }}
             >
-              <TiltCard href={product.url} target="_blank" rel="noopener noreferrer" className="glass-panel-hover glass-panel rounded-3xl overflow-hidden block transition-all duration-300 group">
-                <div className="aspect-video overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#06060c] via-[#06060c]/40 to-transparent z-10" />
+              <TiltCard href={product.url} target="_blank" rel="noopener noreferrer" className="glass-panel-hover glass-panel rounded-3xl overflow-hidden block transition-all duration-500 group">
+                <div className="aspect-[16/10] overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-transparent to-transparent z-10" />
                   <img 
                     src={product.image} 
                     alt={product.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-70 group-hover:opacity-100"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-90"
                   />
-                  <div className="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1.5">
+                  <div className="absolute top-5 right-5 z-20 bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
                     {product.icon}
                     {product.tag}
                   </div>
                 </div>
-                <div className="p-8 relative z-20 -mt-16 bg-gradient-to-t from-[#0a1a5c]/40 to-transparent">
-                  <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-blue-400 transition-colors drop-shadow-md">{product.title}</h3>
+                <div className="p-8 relative z-20 -mt-8 bg-gradient-to-t from-black to-transparent">
+                  <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors drop-shadow-md">{product.title}</h3>
                   <p className="text-zinc-400 mb-8 leading-relaxed line-clamp-2">{product.desc}</p>
                   <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                     <button 
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedProduct(product); }}
-                      className="text-sm font-bold text-blue-300 flex items-center justify-center gap-2 bg-blue-500/10 px-4 py-2.5 rounded-xl hover:bg-blue-500/20 border border-blue-500/20 transition-colors w-full sm:w-auto flex-1 cursor-pointer"
+                      className="text-sm font-bold text-yellow-300 flex items-center justify-center gap-2 bg-yellow-500/10 px-5 py-3 rounded-xl hover:bg-yellow-500/20 border border-yellow-500/30 transition-colors w-full sm:w-auto flex-1 cursor-pointer"
                     >
-                      تفاصيل المنتجات
+                      تفاصيل المنتج
                     </button>
                     <a 
                       href={product.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-sm font-bold text-white flex flex-row-reverse items-center justify-center gap-2 bg-white/10 px-4 py-2.5 rounded-xl hover:bg-blue-500 hover:text-white transition-colors w-full sm:w-auto flex-1 z-30"
+                      className="text-sm font-bold text-black flex flex-row-reverse items-center justify-center gap-2 bg-gradient-gold px-5 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all w-full sm:w-auto flex-1 z-30"
                     >
                       شراء الآن <ExternalLink className="w-4 h-4" />
                     </a>
@@ -1611,7 +1583,7 @@ function Footer() {
   );
 }
 
-function SpooferGuide({ onClose }: { onClose: () => void }) {
+function SuperstarGuide({ onClose }: { onClose: () => void }) {
   const [copiedCmd, setCopiedCmd] = useState(false);
   const winCommand = 'windowsdefender://threatsettings/';
 
@@ -2422,12 +2394,12 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   const [keys, setKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'spoofer' | 'fortnite' | 'used' | 'banned' | 'frozen'>('spoofer');
+  const [activeTab, setActiveTab] = useState<'superstar' | 'fortnite' | 'fortnite-hack' | 'used' | 'banned' | 'frozen'>('superstar');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [createCount, setCreateCount] = useState(1);
-  const [createType, setCreateType] = useState<'spoofer' | 'fortnite'>('spoofer');
+  const [createType, setCreateType] = useState<'superstar' | 'fortnite' | 'fortnite-hack'>('superstar');
   const [isCreating, setIsCreating] = useState(false);
   const [lastCreated, setLastCreated] = useState<string[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -2484,8 +2456,9 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   };
 
   const filteredKeys = keys.filter(k => {
-    if (activeTab === 'spoofer') return k.productType === 'spoofer' && k.status !== 'banned' && k.status !== 'frozen';
+    if (activeTab === 'superstar') return k.productType === 'superstar' && k.status !== 'banned' && k.status !== 'frozen';
     if (activeTab === 'fortnite') return k.productType === 'fortnite' && k.status !== 'banned' && k.status !== 'frozen';
+    if (activeTab === 'fortnite-hack') return k.productType === 'fortnite-hack' && k.status !== 'banned' && k.status !== 'frozen';
     if (activeTab === 'used') return k.status === 'active';
     if (activeTab === 'banned') return k.status === 'banned';
     if (activeTab === 'frozen') return k.status === 'frozen';
@@ -2520,8 +2493,9 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                   <div>
                     <label className="text-zinc-400 text-xs mb-1 block">المنتج</label>
                     <div className="flex gap-2">
-                      <button onClick={() => setCreateType('spoofer')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'spoofer' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سبوفر</button>
+                      <button onClick={() => setCreateType('superstar')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'superstar' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سوبر ستار</button>
                       <button onClick={() => setCreateType('fortnite')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite' ? 'bg-purple-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Gamepad2 className="w-4 h-4 inline mr-1" />فورت نايت</button>
+                      <button onClick={() => setCreateType('fortnite-hack')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite-hack' ? 'bg-red-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Crosshair className="w-4 h-4 inline mr-1" />هاك فورت</button>
                     </div>
                   </div>
                   <div>
@@ -2567,7 +2541,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                     ) : (
                       <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
                         <div className="flex justify-between items-center"><span className="text-zinc-400 text-xs">الحالة</span><span className={`px-2 py-1 rounded-full text-xs font-bold border ${getKeyStatus(searchResult).color}`}>{getKeyStatus(searchResult).icon} {getKeyStatus(searchResult).text}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-zinc-400 text-xs">المنتج</span><span className="text-white text-sm font-bold">{searchResult.productType === 'spoofer' ? '🛡️ سبوفر' : '🎮 فورت نايت'}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-zinc-400 text-xs">المنتج</span><span className="text-white text-sm font-bold">{searchResult.productType === 'superstar' ? '🛡️ سوبر ستار' : searchResult.productType === 'fortnite' ? '🎮 فورت نايت' : '🎯 هاك فورت'}</span></div>
                         {searchResult.usedByEmail && <div className="bg-black/30 p-3 rounded-lg"><p className="text-xs text-zinc-500 mb-1">المستخدم:</p><p className="text-sm text-white flex items-center gap-2">{searchResult.usedByPhoto && <img src={searchResult.usedByPhoto} className="w-5 h-5 rounded-full" />}{searchResult.usedByName || searchResult.usedByEmail}</p></div>}
                         {searchResult.activatedAt && <div className="bg-black/30 p-3 rounded-lg"><p className="text-xs text-zinc-500 mb-1">تاريخ التفعيل:</p><p className="text-sm text-white">{new Date(searchResult.activatedAt).toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh', dateStyle: 'full', timeStyle: 'short' })}</p><p className="text-xs text-zinc-500 mt-1">{new Date(searchResult.activatedAt).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })}</p></div>}
                       </div>
@@ -2579,10 +2553,11 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
 
             {/* LEFT: Keys List */}
             <div className="lg:col-span-2 order-2">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">الكل</p><p className="text-xl font-bold text-white">{keys.length}</p></div>
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">سبوفر</p><p className="text-xl font-bold text-blue-400">{keys.filter(k => k.productType === 'spoofer').length}</p></div>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">سوبر ستار</p><p className="text-xl font-bold text-blue-400">{keys.filter(k => k.productType === 'superstar').length}</p></div>
                 <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">فورت نايت</p><p className="text-xl font-bold text-purple-400">{keys.filter(k => k.productType === 'fortnite').length}</p></div>
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">هاك فورت</p><p className="text-xl font-bold text-red-400">{keys.filter(k => k.productType === 'fortnite-hack').length}</p></div>
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">مُفعّل</p><p className="text-xl font-bold text-emerald-400">{keys.filter(k => k.status === 'active').length}</p></div>
                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">غير مستخدم</p><p className="text-xl font-bold text-yellow-400">{keys.filter(k => k.status === 'unused').length}</p></div>
               </div>
@@ -2615,7 +2590,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                             <div className="flex items-center gap-3 mb-2">
                               <button onClick={() => navigator.clipboard.writeText(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-emerald-400 transition-colors" title="نسخ">{k.id}</button>
                               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>{st.icon} {st.text}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${k.productType === 'spoofer' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>{k.productType === 'spoofer' ? '🛡️ سبوفر' : '🎮 فورت نايت'}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${k.productType === 'superstar' ? 'bg-blue-500/20 text-blue-400' : k.productType === 'fortnite' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'}`}>{k.productType === 'superstar' ? '🛡️ سوبر ستار' : k.productType === 'fortnite' ? '🎮 فورت نايت' : '🎯 هاك فورت'}</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
                               {k.usedByEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>}
@@ -3319,8 +3294,9 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [showSpooferGuide, setShowSpooferGuide] = useState(false);
+  const [showSuperstarGuide, setShowSuperstarGuide] = useState(false);
   const [showFortniteGuide, setShowFortniteGuide] = useState(false);
+  const [showFortniteHackGuide, setShowFortniteHackGuide] = useState(false);
   const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
@@ -3671,8 +3647,9 @@ export default function App() {
         onLogin={() => setShowLoginModal(true)} 
         onLogout={logout} 
         authLoading={authLoading}
-        onSpooferClick={() => setShowSpooferGuide(true)} 
+        onSuperstarClick={() => setShowSuperstarGuide(true)} 
         onFortniteClick={() => setShowFortniteGuide(true)}
+        onFortniteHackClick={() => setShowFortniteHackGuide(true)}
         onTroubleshootClick={() => setShowTroubleshoot(true)}
         notifications={notifications}
         unreadCount={unreadCount}
@@ -3748,7 +3725,8 @@ export default function App() {
             }
           }}
           onFortniteClick={() => setShowFortniteGuide(true)}
-          onSpooferClick={() => setShowSpooferGuide(true)}
+          onSuperstarClick={() => setShowSuperstarGuide(true)}
+          onFortniteHackClick={() => setShowFortniteHackGuide(true)}
           activatedProducts={activatedProducts}
         />
         <Products />
@@ -3758,9 +3736,14 @@ export default function App() {
       </main>
       <Footer />
 
-      {/* Spoofer Guide Page - VIP Only */}
+      {/* Superstar Guide Page - VIP Only */}
       <AnimatePresence>
-        {showSpooferGuide && <SpooferGuide onClose={() => setShowSpooferGuide(false)} />}
+        {showSuperstarGuide && <SuperstarGuide onClose={() => setShowSuperstarGuide(false)} />}
+      </AnimatePresence>
+
+      {/* Fortnite Hack Guide Page - VIP Only */}
+      <AnimatePresence>
+        {showFortniteHackGuide && <FortniteHackGuide onClose={() => setShowFortniteHackGuide(false)} />}
       </AnimatePresence>
 
       {/* Site Guide Page */}
