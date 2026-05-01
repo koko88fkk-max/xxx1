@@ -197,7 +197,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   <Wrench className="w-4 h-4" />
                   حل مشاكل عامة
                 </button>
-                {activatedProducts.length > 0 && (
+                {(activatedProducts.length > 0 || isVerified) && (
                   <div className="relative group">
                     <button 
                       className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
@@ -207,7 +207,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                       <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
                     </button>
                     <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
-                      {activatedProducts.includes('spoofer') && (
+                      {(activatedProducts.includes('spoofer') || activatedProducts.length === 0) && (
                         <button 
                           onClick={onSpooferClick}
                           className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
@@ -216,7 +216,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                           شرح السبوفر
                         </button>
                       )}
-                      {activatedProducts.includes('fortnite') && (
+                      {(activatedProducts.includes('fortnite') || activatedProducts.length === 0) && (
                         <button 
                           onClick={onFortniteClick}
                           className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
