@@ -131,12 +131,15 @@ export async function checkBanned(uid: string): Promise<{ banned: boolean; reaso
   return { banned: false };
 }
 
-// Check if user is VIP (key-based)
 export async function checkUserVIP(uid: string) {
   const userRef = doc(db, "users", uid);
   const docSnap = await getDoc(userRef);
   if (docSnap.exists() && docSnap.data().isVIP === true) {
     const keys: string[] = docSnap.data().activatedKeys || [];
+    let hasValidKey = false;
+    const currentProducts = docSnap.data().activatedProducts || [];
+    const newProducts = new Set<string>(currentProducts);
+
     for (const keyId of keys) {
       const keyRef = doc(db, "keys", keyId);
       const keySnap = await getDoc(keyRef);
@@ -145,9 +148,21 @@ export async function checkUserVIP(uid: string) {
         if (kd.status === 'banned' || kd.status === 'frozen') {
           continue;
         }
-        return true;
+        hasValidKey = true;
+        if (kd.productType && !newProducts.has(kd.productType)) {
+          newProducts.add(kd.productType);
+        }
       }
     }
+
+    if (hasValidKey) {
+      // Auto-repair missing products if needed
+      if (newProducts.size > currentProducts.length) {
+        await setDoc(userRef, { activatedProducts: Array.from(newProducts) }, { merge: true });
+      }
+      return true;
+    }
+
     if (keys.length > 0) {
       await setDoc(userRef, { isVIP: false }, { merge: true });
     }
