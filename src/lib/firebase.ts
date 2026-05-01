@@ -266,6 +266,7 @@ export async function deleteAllKeys() {
   for (const d of snap.docs) {
     await deleteKey(d.id);
   }
+  await wipeAllLegacyData();
 }
 
 export async function banKey(keyId: string) {
@@ -589,4 +590,31 @@ export function listenToMaintenanceMode(callback: (isMaintenance: boolean) => vo
 export async function toggleMaintenanceMode(currentState: boolean) {
   const settingsRef = doc(db, "settings", "global");
   await setDoc(settingsRef, { maintenance: !currentState }, { merge: true });
+}
+
+export async function wipeAllLegacyData() {
+  // Wipe all orders
+  const ordersSnap = await getDocs(collection(db, "orders"));
+  for (const orderDoc of ordersSnap.docs) {
+    await deleteDoc(doc(db, "orders", orderDoc.id));
+  }
+  
+  // Wipe all keys
+  const keysSnap = await getDocs(collection(db, "keys"));
+  for (const keyDoc of keysSnap.docs) {
+    await deleteDoc(doc(db, "keys", keyDoc.id));
+  }
+
+  // Reset all users
+  const usersSnap = await getDocs(collection(db, "users"));
+  for (const userDoc of usersSnap.docs) {
+    await setDoc(doc(db, "users", userDoc.id), {
+      isVIP: false,
+      activatedProducts: [],
+      activatedKeys: [],
+      verifiedOrder: null
+    }, { merge: true });
+  }
+
+  return true;
 }

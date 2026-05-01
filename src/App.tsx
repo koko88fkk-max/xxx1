@@ -197,7 +197,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                   <Wrench className="w-4 h-4" />
                   حل مشاكل عامة
                 </button>
-                {(activatedProducts.length > 0 || isVerified) && (
+                {activatedProducts.length > 0 && (
                   <div className="relative group">
                     <button 
                       className="text-emerald-400 hover:text-emerald-300 transition-colors drop-shadow-sm flex items-center gap-1.5 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
@@ -207,7 +207,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                       <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
                     </button>
                     <div className="absolute top-full left-0 mt-2 w-48 bg-[#0a0a14]/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col overflow-hidden z-50">
-                      {(activatedProducts.includes('spoofer') || activatedProducts.length === 0) && (
+                      {activatedProducts.includes('spoofer') && (
                         <button 
                           onClick={onSpooferClick}
                           className="text-yellow-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
@@ -216,7 +216,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                           شرح السبوفر
                         </button>
                       )}
-                      {(activatedProducts.includes('fortnite') || activatedProducts.length === 0) && (
+                      {activatedProducts.includes('fortnite') && (
                         <button 
                           onClick={onFortniteClick}
                           className="text-blue-400 hover:bg-white/5 transition-colors flex items-center gap-2 px-4 py-3 w-full text-right border-b border-white/5 last:border-0"
@@ -471,20 +471,24 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSpooferCli
                     <Wrench className="w-5 h-5" />
                     حل مشاكل عامة
                   </button>
-                  <button 
-                    onClick={() => { setMobileMenuOpen(false); onSpooferClick?.(); }}
-                    className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full hover:bg-yellow-500/20 transition-colors"
-                  >
-                    <Cpu className="w-5 h-5" />
-                    شرح السبوفر
-                  </button>
-                  <button 
-                    onClick={() => { setMobileMenuOpen(false); onFortniteClick?.(); }}
-                    className="text-blue-400 font-bold flex items-center justify-center gap-2 bg-blue-500/10 px-6 py-3 rounded-2xl border border-blue-500/20 w-full hover:bg-blue-500/20 transition-colors"
-                  >
-                    <Gamepad2 className="w-5 h-5" />
-                    شرح هاك فورت
-                  </button>
+                  {activatedProducts.includes('spoofer') && (
+                    <button 
+                      onClick={() => { setMobileMenuOpen(false); onSpooferClick?.(); }}
+                      className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full hover:bg-yellow-500/20 transition-colors"
+                    >
+                      <Cpu className="w-5 h-5" />
+                      شرح السبوفر
+                    </button>
+                  )}
+                  {activatedProducts.includes('fortnite') && (
+                    <button 
+                      onClick={() => { setMobileMenuOpen(false); onFortniteClick?.(); }}
+                      className="text-blue-400 font-bold flex items-center justify-center gap-2 bg-blue-500/10 px-6 py-3 rounded-2xl border border-blue-500/20 w-full hover:bg-blue-500/20 transition-colors"
+                    >
+                      <Gamepad2 className="w-5 h-5" />
+                      شرح هاك فورت
+                    </button>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -2486,6 +2490,9 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
               <div><h1 className="text-2xl font-bold text-white">إدارة المفاتيح</h1><p className="text-zinc-400 text-sm">إنشاء وإدارة مفاتيح المنتجات</p></div>
             </div>
             <div className="flex items-center gap-3">
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDeleteAll} disabled={actionLoading === 'all'} className="px-4 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center hover:bg-red-500/20 transition-all text-red-400 font-bold gap-2">
+                {actionLoading === 'all' ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Trash2 className="w-4 h-4" /> مسح جميع البيانات (تهيئة)</>}
+              </motion.button>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadKeys} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white"><RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} /></motion.button>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white"><X className="w-5 h-5" /></motion.button>
             </div>
