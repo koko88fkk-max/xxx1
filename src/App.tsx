@@ -917,7 +917,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                             <Cpu className="w-6 h-6 text-yellow-400" />
                           </div>
                           <div className="text-right flex-1">
-                            <h4 className="font-bold text-lg text-white">السبوفر (سوبر ستار)</h4>
+                            <h4 className="font-bold text-lg text-white">السبوفر</h4>
                             <p className="text-xs text-zinc-400 mt-1">منتج السبوفر والشروحات الخاصة به.</p>
                           </div>
                         </div>
@@ -1639,10 +1639,10 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-16 max-w-6xl relative z-10 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="container mx-auto px-4 py-16 max-w-[1500px] relative z-10 flex flex-col lg:flex-row justify-center gap-8 items-start">
         
         {/* RIGHT SIDEBAR (Sticky Download Box) */}
-        <div className="w-full lg:w-80 shrink-0 sticky top-28 order-1">
+        <div className="w-full lg:w-[300px] shrink-0 sticky top-28 order-1">
           <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors">
             <div className="flex items-center gap-4 mb-4 w-full">
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
@@ -1887,6 +1887,10 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
         </div>
         
         </div> {/* End of Main Content Left Side */}
+
+        {/* INVISIBLE LEFT SPACER TO CENTER THE MAIN CONTENT */}
+        <div className="hidden lg:block w-[300px] shrink-0 order-3 pointer-events-none"></div>
+
       </div>
     </motion.div>,
     document.body
