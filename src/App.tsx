@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
-import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List } from 'lucide-react';
+import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List, Crosshair } from 'lucide-react';
 import { auth, loginWithDiscord, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, deleteAllKeys, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 import LoginModal from './LoginModal';
