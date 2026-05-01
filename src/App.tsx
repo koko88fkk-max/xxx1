@@ -1038,7 +1038,7 @@ function Products() {
     },
     {
       id: 2,
-      title: "هاك فورت نايت (النسخة الفاخرة)",
+      title: "هاك فورت نايت",
       desc: "أفضل وأأمن هاك لفورت نايت بمميزات حصرية وتحديثات مستمرة للحماية من الباند. لعب آمن واحترافي.",
       url: "https://salla.sa/t3nn",
       image: "/product-fortnite-hack.jpg",
