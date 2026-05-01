@@ -131,193 +131,211 @@ export async function checkBanned(uid: string): Promise<{ banned: boolean; reaso
   return { banned: false };
 }
 
-// Check if user is VIP
+// Check if user is VIP (key-based)
 export async function checkUserVIP(uid: string) {
   const userRef = doc(db, "users", uid);
   const docSnap = await getDoc(userRef);
   if (docSnap.exists() && docSnap.data().isVIP === true) {
-    const orderId = docSnap.data().verifiedOrder;
-    if (orderId) {
-      const orderRef = doc(db, "orders", orderId);
-      const orderSnap = await getDoc(orderRef);
-      if (orderSnap.exists()) {
-        const orderData = orderSnap.data();
-        // Check if order is banned or frozen
-        if (orderData.status === 'banned' || orderData.status === 'frozen') {
-          await setDoc(userRef, { isVIP: false }, { merge: true });
-          return false;
+    const keys: string[] = docSnap.data().activatedKeys || [];
+    for (const keyId of keys) {
+      const keyRef = doc(db, "keys", keyId);
+      const keySnap = await getDoc(keyRef);
+      if (keySnap.exists()) {
+        const kd = keySnap.data();
+        if (kd.status === 'banned' || kd.status === 'frozen') {
+          continue;
         }
+        return true;
       }
     }
-    return true;
+    if (keys.length > 0) {
+      await setDoc(userRef, { isVIP: false }, { merge: true });
+    }
+    return false;
   }
   return false;
 }
 
 // ==========================================
-// 📦 ORDER NUMBER SYSTEM
+// 🔑 KEY SYSTEM - T3N-XXXXXX-XXXXXX
 // ==========================================
 
-// Validate order number format: starts with "2", exactly 9 digits, OR the specific custom static key
-export function isValidOrderFormat(value: string): boolean {
-  const cleaned = value.trim();
-  if (cleaned === "T3N-un4U6I-kd8bN2") return true; 
-  return /^2\d{8}$/.test(cleaned); 
+function generateKeyId(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let part1 = '', part2 = '';
+  for (let i = 0; i < 6; i++) {
+    part1 += chars.charAt(Math.floor(Math.random() * chars.length));
+    part2 += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `T3N-${part1}-${part2}`;
 }
 
-// 📦 Validate and activate an order number
-export async function activateOrder(orderId: string, uid: string, email: string): Promise<{ success: boolean; error?: string; productType?: string }> {
-  const cleaned = orderId.trim();
-  
-  // Validate format: 2XXXXXXXX (9 digits starting with 2)
-  if (!isValidOrderFormat(cleaned)) {
-    return { success: false, error: 'رقم الطلب غير صحيح' };
+export function isValidKeyFormat(value: string): boolean {
+  return /^T3N-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}$/.test(value.trim());
+}
+
+export async function createKeys(count: number, productType: 'spoofer' | 'fortnite'): Promise<string[]> {
+  const created: string[] = [];
+  const now = new Date().toISOString();
+  for (let i = 0; i < Math.min(count, 100); i++) {
+    let keyId = generateKeyId();
+    let exists = true;
+    while (exists) {
+      const snap = await getDoc(doc(db, "keys", keyId));
+      if (!snap.exists()) { exists = false; } else { keyId = generateKeyId(); }
+    }
+    await setDoc(doc(db, "keys", keyId), {
+      keyId, productType, status: 'unused', createdAt: now,
+      activatedAt: null, usedByUid: null, usedByEmail: null,
+      usedByName: null, usedByPhoto: null, usedByProvider: null
+    });
+    created.push(keyId);
   }
+  return created;
+}
 
+export async function activateKey(keyId: string, uid: string, email: string, userData?: { displayName?: string; photoURL?: string; provider?: string }): Promise<{ success: boolean; error?: string; productType?: string; activatedProducts?: string[] }> {
+  const cleaned = keyId.trim();
+  if (!isValidKeyFormat(cleaned)) {
+    return { success: false, error: 'صيغة المفتاح غير صحيحة. الصيغة الصحيحة: T3N-XXXXXX-XXXXXX' };
+  }
   try {
-    const orderRef = doc(db, "orders", cleaned);
-    const orderSnap = await getDoc(orderRef);
-
-    if (orderSnap.exists()) {
-      const orderData = orderSnap.data();
-
-      if (orderData.status === 'banned') {
-        return { success: false, error: 'رقم الطلب هذا محظور' };
-      }
-
-      if (orderData.status === 'frozen') {
-        return { success: false, error: 'رقم الطلب هذا مُجمّد مؤقتاً' };
-      }
-
-      // Already used by someone else
-      if (orderData.usedByUid && orderData.usedByUid !== uid) {
-        return { success: false, error: 'رقم الطلب هذا مرتبط بحساب آخر' };
-      }
-
-      // Same user re-entering - allow and return productType
-      if (orderData.usedByUid === uid) {
-        return { success: true, productType: orderData.productType || 'spoofer' };
-      }
+    const keyRef = doc(db, "keys", cleaned);
+    const keySnap = await getDoc(keyRef);
+    if (!keySnap.exists()) return { success: false, error: 'المفتاح غير موجود' };
+    const kd = keySnap.data();
+    if (kd.status === 'banned') return { success: false, error: 'هذا المفتاح محظور' };
+    if (kd.status === 'frozen') return { success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' };
+    if (kd.usedByUid && kd.usedByUid !== uid) return { success: false, error: 'هذا المفتاح مرتبط بحساب آخر' };
+    if (kd.usedByUid === uid) {
+      const userRef = doc(db, "users", uid);
+      const userSnap = await getDoc(userRef);
+      const prods = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
+      return { success: true, productType: kd.productType, activatedProducts: prods };
     }
-
-    // Determine product type from order document (set by Make)
-    const productType = orderSnap.exists() ? (orderSnap.data()?.productType || 'spoofer') : 'spoofer';
-
-    // Activate the order (update existing)
     const now = new Date();
-    
-    await setDoc(orderRef, {
-      status: 'active',
-      activatedAt: now.toISOString(),
-      usedByEmail: email,
-      usedByUid: uid
+    await setDoc(keyRef, {
+      status: 'active', activatedAt: now.toISOString(),
+      usedByUid: uid, usedByEmail: email,
+      usedByName: userData?.displayName || null,
+      usedByPhoto: userData?.photoURL || null,
+      usedByProvider: userData?.provider || 'google'
     }, { merge: true });
-
-    // Mark user as VIP with productType
     const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    const existingProducts: string[] = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
+    const existingKeys: string[] = userSnap.exists() ? (userSnap.data().activatedKeys || []) : [];
+    if (!existingProducts.includes(kd.productType)) existingProducts.push(kd.productType);
+    if (!existingKeys.includes(cleaned)) existingKeys.push(cleaned);
     await setDoc(userRef, {
-      isVIP: true,
-      verifiedOrder: cleaned,
-      productType: productType,
-      email: email,
-      verifiedAt: now.toISOString()
+      isVIP: true, activatedProducts: existingProducts, activatedKeys: existingKeys,
+      email, verifiedAt: now.toISOString()
     }, { merge: true });
-
-    return { success: true, productType };
+    return { success: true, productType: kd.productType, activatedProducts: existingProducts };
   } catch (err: any) {
-    console.error('Firebase activateOrder error:', err);
-    if (err?.code === 'permission-denied') {
-      return { success: false, error: 'ليس لديك صلاحية لتفعيل هذا الطلب' };
-    }
-    if (err?.code === 'unavailable' || err?.message?.includes('offline')) {
-      return { success: false, error: 'مشكلة في الاتصال، تأكد من الانترنت وحاول مرة ثانية' };
-    }
+    console.error('activateKey error:', err);
+    if (err?.code === 'permission-denied') return { success: false, error: 'ليس لديك صلاحية' };
     return { success: false, error: 'حدث خطأ: ' + (err?.message || 'غير معروف') };
   }
 }
 
-
-// 📦 Delete an order
-export async function deleteOrder(orderId: string) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
-    if (orderData.usedByUid) {
-      const userRef = doc(db, "users", orderData.usedByUid);
-      await setDoc(userRef, { isVIP: false }, { merge: true });
-    }
-  }
-  await deleteDoc(orderRef);
+export async function getAllKeys() {
+  const snap = await getDocs(collection(db, "keys"));
+  const keys: any[] = [];
+  snap.forEach((d) => keys.push({ id: d.id, ...d.data() }));
+  return keys.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 }
 
-// 📦 Ban an order
-export async function banOrder(orderId: string) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
-    await setDoc(orderRef, { status: 'banned' }, { merge: true });
-    if (orderData.usedByUid) {
-      const userRef = doc(db, "users", orderData.usedByUid);
-      await setDoc(userRef, { isVIP: false }, { merge: true });
+export async function deleteKey(keyId: string) {
+  const ref = doc(db, "keys", keyId);
+  const snap = await getDoc(ref);
+  if (snap.exists() && snap.data().usedByUid) {
+    const userRef = doc(db, "users", snap.data().usedByUid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const prods = (userSnap.data().activatedProducts || []).filter((p: string) => p !== snap.data().productType);
+      const keys = (userSnap.data().activatedKeys || []).filter((k: string) => k !== keyId);
+      await setDoc(userRef, { activatedProducts: prods, activatedKeys: keys, isVIP: prods.length > 0 }, { merge: true });
     }
   }
+  await deleteDoc(ref);
 }
 
-// 📦 Unban an order
-export async function unbanOrder(orderId: string) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
-    let newStatus = 'active';
-    if (orderData.usedByUid) {
-      const userRef = doc(db, "users", orderData.usedByUid);
-      await setDoc(userRef, { isVIP: true }, { merge: true });
-    }
-    await setDoc(orderRef, { status: newStatus }, { merge: true });
-  }
-}
-
-// 📦 Freeze an order temporarily
-export async function freezeOrder(orderId: string) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
-    await setDoc(orderRef, { status: 'frozen', previousStatus: orderData.status }, { merge: true });
-    if (orderData.usedByUid) {
-      const userRef = doc(db, "users", orderData.usedByUid);
-      await setDoc(userRef, { isVIP: false }, { merge: true });
+export async function banKey(keyId: string) {
+  const ref = doc(db, "keys", keyId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    await setDoc(ref, { status: 'banned' }, { merge: true });
+    if (snap.data().usedByUid) {
+      const userRef = doc(db, "users", snap.data().usedByUid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const prods = (userSnap.data().activatedProducts || []).filter((p: string) => p !== snap.data().productType);
+        await setDoc(userRef, { activatedProducts: prods, isVIP: prods.length > 0 }, { merge: true });
+      }
     }
   }
 }
 
-// 📦 Unfreeze an order
-export async function unfreezeOrder(orderId: string) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (orderSnap.exists()) {
-    const orderData = orderSnap.data();
-    let newStatus = orderData.previousStatus || 'active';
-    if (newStatus === 'active' && orderData.usedByUid) {
-      const userRef = doc(db, "users", orderData.usedByUid);
-      await setDoc(userRef, { isVIP: true }, { merge: true });
+export async function unbanKey(keyId: string) {
+  const ref = doc(db, "keys", keyId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const newStatus = snap.data().usedByUid ? 'active' : 'unused';
+    await setDoc(ref, { status: newStatus }, { merge: true });
+    if (snap.data().usedByUid) {
+      const userRef = doc(db, "users", snap.data().usedByUid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const prods = userSnap.data().activatedProducts || [];
+        if (!prods.includes(snap.data().productType)) prods.push(snap.data().productType);
+        await setDoc(userRef, { activatedProducts: prods, isVIP: true }, { merge: true });
+      }
     }
-    await setDoc(orderRef, { status: newStatus, previousStatus: null }, { merge: true });
   }
 }
 
-// 📦 Get all orders for admin
-export async function getAllOrders() {
-  const ordersSnap = await getDocs(collection(db, "orders"));
-  const orders: any[] = [];
-  ordersSnap.forEach((d) => {
-    const data = d.data();
-    orders.push({ id: d.id, ...data });
-  });
-  return orders.sort((a, b) => (b.activatedAt || b.createdAt || '').localeCompare(a.activatedAt || a.createdAt || ''));
+export async function freezeKey(keyId: string) {
+  const ref = doc(db, "keys", keyId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    await setDoc(ref, { status: 'frozen', previousStatus: snap.data().status }, { merge: true });
+    if (snap.data().usedByUid) {
+      const userRef = doc(db, "users", snap.data().usedByUid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const prods = (userSnap.data().activatedProducts || []).filter((p: string) => p !== snap.data().productType);
+        await setDoc(userRef, { activatedProducts: prods, isVIP: prods.length > 0 }, { merge: true });
+      }
+    }
+  }
+}
+
+export async function unfreezeKey(keyId: string) {
+  const ref = doc(db, "keys", keyId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const newStatus = snap.data().previousStatus || (snap.data().usedByUid ? 'active' : 'unused');
+    await setDoc(ref, { status: newStatus, previousStatus: null }, { merge: true });
+    if (newStatus === 'active' && snap.data().usedByUid) {
+      const userRef = doc(db, "users", snap.data().usedByUid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const prods = userSnap.data().activatedProducts || [];
+        if (!prods.includes(snap.data().productType)) prods.push(snap.data().productType);
+        await setDoc(userRef, { activatedProducts: prods, isVIP: true }, { merge: true });
+      }
+    }
+  }
+}
+
+export async function checkKeyStatus(keyId: string): Promise<any> {
+  const cleaned = keyId.trim();
+  if (!isValidKeyFormat(cleaned)) throw new Error('صيغة المفتاح غير صحيحة');
+  const ref = doc(db, "keys", cleaned);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { status: 'not_found' };
+  return { ...snap.data() };
 }
 
 // ==========================================
@@ -400,7 +418,6 @@ export async function removeAdminUser(email: string) {
 
 // 📊 Admin: Get dashboard statistics
 export async function getAdminStats() {
-  // Get all users
   const usersSnap = await getDocs(collection(db, "users"));
   const users: any[] = [];
   let vipCount = 0;
@@ -410,40 +427,37 @@ export async function getAdminStats() {
     if (data.isVIP) vipCount++;
   });
 
-  // Get all orders
-  const ordersSnap = await getDocs(collection(db, "orders"));
-  const orders: any[] = [];
-  ordersSnap.forEach((d) => {
-    orders.push({ id: d.id, ...d.data() });
+  const keysSnap = await getDocs(collection(db, "keys"));
+  const keys: any[] = [];
+  let spooferKeys = 0, fortniteKeys = 0, usedKeys = 0, unusedKeys = 0, bannedKeys = 0, frozenKeys = 0;
+  keysSnap.forEach((d) => {
+    const data = d.data();
+    keys.push({ id: d.id, ...data });
+    if (data.productType === 'spoofer') spooferKeys++;
+    if (data.productType === 'fortnite') fortniteKeys++;
+    if (data.status === 'active') usedKeys++;
+    if (data.status === 'unused') unusedKeys++;
+    if (data.status === 'banned') bannedKeys++;
+    if (data.status === 'frozen') frozenKeys++;
   });
 
-  // Get banned users
   const bannedSnap = await getDocs(collection(db, "bannedUsers"));
   const banned: any[] = [];
-  bannedSnap.forEach((d) => {
-    banned.push({ id: d.id, ...d.data() });
-  });
+  bannedSnap.forEach((d) => banned.push({ id: d.id, ...d.data() }));
 
-  // Get admins list
   const adminsSnap = await getDocs(collection(db, "admins"));
   const admins: any[] = [{ email: MAIN_ADMIN_EMAIL, role: 'مالك' }];
-  adminsSnap.forEach((d) => {
-    admins.push({ email: d.id, ...d.data(), role: 'مشرف' });
-  });
+  adminsSnap.forEach((d) => admins.push({ email: d.id, ...d.data(), role: 'مشرف' }));
 
-  // Get total site visits
   const totalVisits = await getSiteVisits();
 
   return {
-    totalUsers: users.length,
-    vipUsers: vipCount,
-    totalOrders: orders.length,
-    bannedCount: banned.length,
-    totalVisits,
+    totalUsers: users.length, vipUsers: vipCount,
+    totalKeys: keys.length, spooferKeys, fortniteKeys, usedKeys, unusedKeys, bannedKeys, frozenKeys,
+    bannedCount: banned.length, totalVisits,
     users: users.sort((a, b) => (b.verifiedAt || b.lastLoginAt || '').localeCompare(a.verifiedAt || a.lastLoginAt || '')),
-    orders: orders.sort((a, b) => (b.activatedAt || b.createdAt || '').localeCompare(a.activatedAt || a.createdAt || '')),
-    banned,
-    admins,
+    keys: keys.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')),
+    banned, admins,
   };
 }
 
@@ -469,18 +483,6 @@ export async function getMaintenanceStatus(): Promise<{ enabled: boolean; messag
     return { enabled: snap.data().enabled || false, message: snap.data().message || '' };
   }
   return { enabled: false, message: '' };
-}
-
-// 📦 Check Order Status
-export async function checkOrderStatus(orderId: string): Promise<any> {
-  const cleaned = orderId.trim();
-  if (!isValidOrderFormat(cleaned)) throw new Error('يرجى التحقق من صياغة رقم الطلب');
-  const orderRef = doc(db, "orders", cleaned);
-  const snap = await getDoc(orderRef);
-  if (!snap.exists()) {
-    return { status: 'unused' };
-  }
-  return { status: 'used', ...snap.data() };
 }
 
 // 🔔 Listen to notifications (Announcements from Discord)

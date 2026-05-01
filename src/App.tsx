@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 import LoginModal from './LoginModal';
 
@@ -718,46 +718,25 @@ function CustomVideoPlayer() {
   );
 }
 
-function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }: { onVerify?: (orderId: string) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, productType?: string }) {
-  // Activate State
+function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClick, activatedProducts }: { onVerify?: (keyId: string) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, onSpooferClick?: () => void, activatedProducts?: string[] }) {
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [lastActivatedType, setLastActivatedType] = useState('');
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderInput.trim()) return;
-
-    if (!user) {
-      setStatus('error');
-      setErrorMsg('يجب تسجيل الدخول بحساب جوجل أولاً للتحقق من رقم الطلب');
-      return;
-    }
-
-    if (!isValidOrderFormat(orderInput)) {
-      setStatus('error');
-      setErrorMsg('رقم الطلب غير صحيح، يرجى التأكد من الرقم والمحاولة مرة أخرى');
-      return;
-    }
-
+    if (!user) { setStatus('error'); setErrorMsg('يجب تسجيل الدخول بحساب جوجل أولاً'); return; }
+    if (!isValidKeyFormat(orderInput)) { setStatus('error'); setErrorMsg('صيغة المفتاح غير صحيحة. الصيغة: T3N-XXXXXX-XXXXXX'); return; }
     setStatus('loading');
-
     try {
-      const result = await activateOrder(orderInput.trim(), user.uid, user.email || '');
+      const result = await activateKey(orderInput.trim(), user.uid, user.email || '', { displayName: user.displayName || undefined, photoURL: user.photoURL || undefined, provider: 'google' });
       if (result.success) {
-        setTimeout(() => {
-          setStatus('success');
-          if (onVerify) onVerify(orderInput.trim());
-        }, 1500);
-      } else {
-        setStatus('error');
-        setErrorMsg(result.error || 'حدث خطأ أثناء التحقق');
-      }
-    } catch (e: any) {
-      console.error('Error activating order:', e);
-      setStatus('error');
-      setErrorMsg(e?.message || 'حدث خطأ غير متوقع، يرجى المحاولة لاحقاً');
-    }
+        setLastActivatedType(result.productType || '');
+        setTimeout(() => { setStatus('success'); if (onVerify) onVerify(orderInput.trim()); }, 1500);
+      } else { setStatus('error'); setErrorMsg(result.error || 'حدث خطأ'); }
+    } catch (e: any) { setStatus('error'); setErrorMsg(e?.message || 'حدث خطأ غير متوقع'); }
   };
 
   return (
@@ -769,8 +748,8 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">بوابة الطلبات</h2>
-          <p className="text-zinc-400 text-lg">من هنا يمكنك تفعيل طلبك للارتباط بحسابك واستلامه</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-md">بوابة التفعيل</h2>
+          <p className="text-zinc-400 text-lg">من هنا يمكنك تفعيل مفتاحك للارتباط بحسابك واستلام منتجك</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
@@ -791,11 +770,11 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                   className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
                 >
                   <div className="w-16 h-16 bg-blue-500/20 rounded-2xl border border-blue-500/30 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-                    <Package className="w-8 h-8 text-blue-400" />
+                    <Key className="w-8 h-8 text-blue-400" />
                   </div>
-                  <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">استلام الطلب</h3>
+                  <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">تفعيل المفتاح</h3>
                   <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
-                    قم بإدخال رقم الطلب الخاص بك لاستلام مشترياتك فوراً.
+                    أدخل مفتاح المنتج الخاص بك لاستلام مشترياتك فوراً.
                   </p>
 
                   {/* Google Login Button - Show when NOT logged in */}
@@ -835,7 +814,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                         setOrderInput(e.target.value);
                         if (status === 'error') setStatus('idle');
                       }}
-                      placeholder="أدخل رقم الطلب الخاص بك..."
+                      placeholder="T3N-XXXXXX-XXXXXX"
                       className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
                       dir="ltr"
                     />
@@ -857,10 +836,10 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={!orderInput.trim() || !user}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 w-full mt-2"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(37,99,235,0.2)] border-t border-blue-400/30 mt-2"
                   >
-                    <Hash className="w-6 h-6" />
-                    تفعيل رقم الطلب
+                    <Key className="w-6 h-6" />
+                    تفعيل المفتاح
                   </motion.button>
                 </motion.form>
               ) : status === 'loading' ? (
@@ -894,13 +873,13 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                     <CheckCircle2 className="w-10 h-10" />
                   </motion.div>
                   <h3 className="text-2xl font-bold mb-2 text-white">تم التفعيل بنجاح!</h3>
-                  <p className="text-zinc-400 mb-2 text-md">رقم الطلب <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
+                  <p className="text-zinc-400 mb-2 text-md">المفتاح <span className="text-white font-mono bg-white/10 px-2 py-1 rounded-md text-sm">{orderInput}</span> مُفعّل ومرتبط بحسابك.</p>
                   <p className="text-emerald-400 text-sm mb-8 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> مرتبط بحسابك للأبد</p>
 
                   <div className="flex flex-col gap-4 w-full">
 
-                    {/* === SPOOFER SECTION - shown only for spoofer product === */}
-                    {(!productType || productType === 'spoofer') && (
+                    {/* === SPOOFER SECTION === */}
+                    {(activatedProducts?.includes('spoofer') || lastActivatedType === 'spoofer') && (
                       <motion.div 
                         whileHover={{ y: -2 }}
                         className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
@@ -931,11 +910,20 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                           <Download className="w-5 h-5" />
                           تحميل ملف السبوفر
                         </motion.button>
+                        <motion.button
+                          onClick={onSpooferClick}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-blue-500/20"
+                        >
+                          <MonitorPlay className="w-5 h-5" />
+                          الانتقال إلى شرح السبوفر
+                        </motion.button>
                       </motion.div>
                     )}
 
-                    {/* === FORTNITE HACK SECTION - shown only for fortnite product === */}
-                    {productType === 'fortnite' && (
+                    {/* === FORTNITE HACK SECTION === */}
+                    {(activatedProducts?.includes('fortnite') || lastActivatedType === 'fortnite') && (
                       <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
@@ -990,7 +978,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, productType }
                     onClick={() => { setStatus('idle'); setOrderInput(''); }}
                     className="mt-6 text-sm text-zinc-500 hover:text-white transition-colors underline underline-offset-4"
                   >
-                    تفعيل رقم طلب آخر
+                    تفعيل مفتاح آخر
                   </button>
                 </motion.div>
               )}
@@ -2409,98 +2397,77 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
 
 // 🔑 Key Management Panel - Only accessible by admin
 function KeyManagement({ onClose }: { onClose: () => void }) {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [keys, setKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-
-  // Search states
+  const [activeTab, setActiveTab] = useState<'spoofer' | 'fortnite' | 'used' | 'banned' | 'frozen'>('spoofer');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [createCount, setCreateCount] = useState(1);
+  const [createType, setCreateType] = useState<'spoofer' | 'fortnite'>('spoofer');
+  const [isCreating, setIsCreating] = useState(false);
+  const [lastCreated, setLastCreated] = useState<string[]>([]);
+  const [copySuccess, setCopySuccess] = useState(false);
 
-  const loadOrders = async () => {
+  const loadKeys = async () => {
     setLoading(true);
-    try {
-      const data = await getAllOrders();
-      setOrders(data);
-    } catch (e) {
-      console.error('Failed to load orders:', e);
-    }
+    try { const data = await getAllKeys(); setKeys(data); } catch (e) { console.error('Failed to load keys:', e); }
     setLoading(false);
   };
 
-  useEffect(() => { loadOrders(); }, []);
+  useEffect(() => { loadKeys(); }, []);
+  useEffect(() => { const iv = setInterval(() => { loadKeys(); }, 30000); return () => clearInterval(iv); }, []);
 
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadOrders();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleDelete = async (orderId: string) => {
-    if (!confirm(`هل أنت متأكد من حذف الطلب ${orderId}؟`)) return;
-    setActionLoading(orderId);
-    await deleteOrder(orderId);
-    await loadOrders();
-    setActionLoading(null);
+  const handleCreateKeys = async () => {
+    if (createCount < 1 || createCount > 100) return;
+    setIsCreating(true);
+    try {
+      const created = await createKeys(createCount, createType);
+      setLastCreated(created);
+      await loadKeys();
+    } catch (e) { console.error('Failed to create keys:', e); }
+    setIsCreating(false);
   };
 
-  const handleBan = async (orderId: string) => {
-    if (!confirm(`هل تريد حظر الطلب ${orderId}؟`)) return;
-    setActionLoading(orderId);
-    await banOrder(orderId);
-    await loadOrders();
-    setActionLoading(null);
+  const handleCopyAll = () => {
+    navigator.clipboard.writeText(lastCreated.join('\n'));
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
-  const handleUnban = async (orderId: string) => {
-    if (!confirm(`هل تريد فك حظر الطلب ${orderId}؟`)) return;
-    setActionLoading(orderId);
-    await unbanOrder(orderId);
-    await loadOrders();
-    setActionLoading(null);
-  };
-
-  const handleFreeze = async (orderId: string) => {
-    if (!confirm(`هل تريد تجميد الطلب ${orderId}؟`)) return;
-    setActionLoading(orderId);
-    await freezeOrder(orderId);
-    await loadOrders();
-    setActionLoading(null);
-  };
-
-  const handleUnfreeze = async (orderId: string) => {
-    if (!confirm(`هل تريد إلغاء تجميد الطلب ${orderId}؟`)) return;
-    setActionLoading(orderId);
-    await unfreezeOrder(orderId);
-    await loadOrders();
-    setActionLoading(null);
-  };
-
-  const handleCopyOrder = (orderId: string) => {
-    navigator.clipboard.writeText(orderId);
-  };
+  const handleDelete = async (id: string) => { if (!confirm(`حذف المفتاح ${id}؟`)) return; setActionLoading(id); await deleteKey(id); await loadKeys(); setActionLoading(null); };
+  const handleBan = async (id: string) => { if (!confirm(`حظر المفتاح ${id}؟`)) return; setActionLoading(id); await banKey(id); await loadKeys(); setActionLoading(null); };
+  const handleUnban = async (id: string) => { if (!confirm(`فك حظر ${id}؟`)) return; setActionLoading(id); await unbanKey(id); await loadKeys(); setActionLoading(null); };
+  const handleFreeze = async (id: string) => { if (!confirm(`تجميد ${id}؟`)) return; setActionLoading(id); await freezeKey(id); await loadKeys(); setActionLoading(null); };
+  const handleUnfreeze = async (id: string) => { if (!confirm(`إلغاء تجميد ${id}؟`)) return; setActionLoading(id); await unfreezeKey(id); await loadKeys(); setActionLoading(null); };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResult(null);
-      return;
-    }
+    if (!searchQuery.trim()) { setSearchResult(null); return; }
     setIsSearching(true);
     try {
-      const res = await checkOrderStatus(searchQuery.trim());
-      if (res.status === 'unused') {
-        setSearchResult('unused');
-      } else {
-        setSearchResult(res);
-      }
-    } catch (err: any) {
-      setSearchResult({ error: err.message || 'خطأ في جلب البيانات' });
-    }
+      const res = await checkKeyStatus(searchQuery.trim());
+      setSearchResult(res);
+    } catch (err: any) { setSearchResult({ error: err.message }); }
     setIsSearching(false);
   };
+
+  const getKeyStatus = (k: any) => {
+    if (k.status === 'banned') return { text: 'محظور', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: '🚫' };
+    if (k.status === 'frozen') return { text: 'مُجمّد', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: '❄️' };
+    if (k.status === 'active') return { text: 'مُفعّل', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: '✅' };
+    if (k.status === 'unused') return { text: 'غير مستخدم', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', icon: '🔑' };
+    return { text: 'غير معروف', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30', icon: '❓' };
+  };
+
+  const filteredKeys = keys.filter(k => {
+    if (activeTab === 'spoofer') return k.productType === 'spoofer' && k.status !== 'banned' && k.status !== 'frozen';
+    if (activeTab === 'fortnite') return k.productType === 'fortnite' && k.status !== 'banned' && k.status !== 'frozen';
+    if (activeTab === 'used') return k.status === 'active';
+    if (activeTab === 'banned') return k.status === 'banned';
+    if (activeTab === 'frozen') return k.status === 'frozen';
+    return true;
+  });
 
   const getOrderStatus = (k: any) => {
     if (k.status === 'banned') return { text: 'محظور', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: '🚫' };
@@ -2531,110 +2498,80 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   };
 
   return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[99998] bg-black/90 backdrop-blur-xl overflow-y-auto"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[99998] bg-black/90 backdrop-blur-xl overflow-y-auto">
       <div className="min-h-screen p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.4)]">
-                <Hash className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">إدارة الطلبات</h1>
-                <p className="text-zinc-400 text-sm">عرض وإدارة أرقام الطلبات المرتبطة</p>
-              </div>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg"><Key className="w-6 h-6 text-white" /></div>
+              <div><h1 className="text-2xl font-bold text-white">إدارة المفاتيح</h1><p className="text-zinc-400 text-sm">إنشاء وإدارة مفاتيح المنتجات</p></div>
             </div>
             <div className="flex items-center gap-3">
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadOrders} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white">
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white">
-                <X className="w-5 h-5" />
-              </motion.button>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadKeys} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all text-white"><RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} /></motion.button>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onClose} className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-all text-white"><X className="w-5 h-5" /></motion.button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            
-            {/* RIGHT SIDE: Search & Verification Box */}
-            <div className="lg:col-span-1 order-1 lg:order-1 sticky top-8">
-              <div className="bg-[#0a0a0f]/80 backdrop-blur-md rounded-3xl p-6 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-                  <Search className="w-5 h-5 text-blue-400" />
-                  التحقق من حالة الطلب
-                </h3>
-                
-                <div className="relative mb-6">
-                  <input 
-                    type="text"
-                    placeholder="أدخل رقم الطلب للبحث..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all text-left"
-                    dir="ltr"
-                  />
-                  <div className="absolute top-1/2 -translate-y-1/2 right-4 text-zinc-500">
-                    <Hash className="w-5 h-5" />
+            {/* RIGHT: Create & Search */}
+            <div className="lg:col-span-1 order-1 space-y-6 sticky top-8">
+              {/* Create Keys */}
+              <div className="bg-[#0a0a0f]/80 backdrop-blur-md rounded-3xl p-6 border border-emerald-500/20">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4"><Plus className="w-5 h-5 text-emerald-400" /> إنشاء مفاتيح</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-zinc-400 text-xs mb-1 block">المنتج</label>
+                    <div className="flex gap-2">
+                      <button onClick={() => setCreateType('spoofer')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'spoofer' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سبوفر</button>
+                      <button onClick={() => setCreateType('fortnite')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite' ? 'bg-purple-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Gamepad2 className="w-4 h-4 inline mr-1" />فورت نايت</button>
+                    </div>
                   </div>
+                  <div>
+                    <label className="text-zinc-400 text-xs mb-1 block">العدد (1-100)</label>
+                    <input type="number" min={1} max={100} value={createCount} onChange={(e) => setCreateCount(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-center font-mono focus:outline-none focus:border-emerald-500/50" />
+                  </div>
+                  <button onClick={handleCreateKeys} disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2">
+                    {isCreating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Plus className="w-5 h-5" /> إنشاء {createCount} مفتاح</>}
+                  </button>
                 </div>
-                
-                <button
-                  onClick={handleSearch}
-                  disabled={isSearching}
-                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"
-                >
+                {lastCreated.length > 0 && (
+                  <div className="mt-4 border-t border-white/10 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-emerald-400 font-bold">✅ تم إنشاء {lastCreated.length} مفتاح</span>
+                      <button onClick={handleCopyAll} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all">
+                        {copySuccess ? <><Check className="w-3 h-3" /> تم النسخ</> : <><Copy className="w-3 h-3" /> نسخ الكل</>}
+                      </button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1 bg-black/30 rounded-xl p-3">
+                      {lastCreated.map((k, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                          <span className="text-xs font-mono text-zinc-300">{k}</span>
+                          <button onClick={() => { navigator.clipboard.writeText(k); }} className="text-zinc-500 hover:text-white transition-colors"><Copy className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Search */}
+              <div className="bg-[#0a0a0f]/80 backdrop-blur-md rounded-3xl p-6 border border-blue-500/20">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4"><Search className="w-5 h-5 text-blue-400" /> التحقق من مفتاح</h3>
+                <input type="text" placeholder="T3N-XXXXXX-XXXXXX" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 mb-4 font-mono text-center" dir="ltr" />
+                <button onClick={handleSearch} disabled={isSearching} className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2">
                   {isSearching ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'بحث واستعلام'}
                 </button>
-
                 {searchResult && (
-                  <div className="mt-6 border-t border-white/10 pt-6">
-                    {searchResult === 'unused' ? (
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 text-center">
-                        <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                        <h4 className="text-xl font-bold text-emerald-400 mb-2">رقم طلب ممتاز!</h4>
-                        <p className="text-zinc-300">هذا الرقم <span className="font-bold text-white">غير مستخدم بعد</span> وجاهز للاستخدام من قِبل أي عميل.</p>
-                      </div>
+                  <div className="mt-4 border-t border-white/10 pt-4">
+                    {searchResult.status === 'not_found' ? (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center"><AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" /><p className="text-red-400 font-bold">المفتاح غير موجود</p></div>
                     ) : searchResult.error ? (
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
-                        <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-                        <h4 className="text-xl font-bold text-red-400 mb-2">خطأ!</h4>
-                        <p className="text-zinc-300">{searchResult.error}</p>
-                      </div>
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center"><p className="text-red-400">{searchResult.error}</p></div>
                     ) : (
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-bold text-lg text-white">معلومات الطلب</h4>
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${getOrderStatus(searchResult).color}`}>
-                            {getOrderStatus(searchResult).icon} {getOrderStatus(searchResult).text}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <div className="bg-black/30 p-3 rounded-lg border border-white/5">
-                            <p className="text-xs text-zinc-500 mb-1">تم التفعيل بواسطة:</p>
-                            <p className="text-sm font-bold text-white break-all flex items-center gap-2"><Mail className="w-4 h-4 text-blue-400"/> {searchResult.usedByEmail || 'غير معروف'}</p>
-                          </div>
-                          
-                          {searchResult.activatedAt && (
-                            <>
-                              <div className="bg-black/30 p-3 rounded-lg border border-white/5">
-                                <p className="text-xs text-zinc-500 mb-1">تاريخ ووقت التفعيل (الميلادي):</p>
-                                <p className="text-sm font-bold text-white flex items-center gap-2"><Clock className="w-4 h-4 text-amber-400"/> {new Date(searchResult.activatedAt).toLocaleString('en-US', { timeZone: 'Asia/Riyadh', hour12: true })}</p>
-                              </div>
-                              <div className="bg-black/30 p-3 rounded-lg border border-white/5">
-                                <p className="text-xs text-zinc-500 mb-1">مدة الاستخدام (منذ التفعيل):</p>
-                                <p className="text-sm font-bold text-emerald-400 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500"/> {formatDuration(searchResult.activatedAt)}</p>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+                        <div className="flex justify-between items-center"><span className="text-zinc-400 text-xs">الحالة</span><span className={`px-2 py-1 rounded-full text-xs font-bold border ${getKeyStatus(searchResult).color}`}>{getKeyStatus(searchResult).icon} {getKeyStatus(searchResult).text}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-zinc-400 text-xs">المنتج</span><span className="text-white text-sm font-bold">{searchResult.productType === 'spoofer' ? '🛡️ سبوفر' : '🎮 فورت نايت'}</span></div>
+                        {searchResult.usedByEmail && <div className="bg-black/30 p-3 rounded-lg"><p className="text-xs text-zinc-500 mb-1">المستخدم:</p><p className="text-sm text-white flex items-center gap-2">{searchResult.usedByPhoto && <img src={searchResult.usedByPhoto} className="w-5 h-5 rounded-full" />}{searchResult.usedByName || searchResult.usedByEmail}</p></div>}
+                        {searchResult.activatedAt && <div className="bg-black/30 p-3 rounded-lg"><p className="text-xs text-zinc-500 mb-1">تاريخ التفعيل:</p><p className="text-sm text-white">{new Date(searchResult.activatedAt).toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh', dateStyle: 'full', timeStyle: 'short' })}</p><p className="text-xs text-zinc-500 mt-1">{new Date(searchResult.activatedAt).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })}</p></div>}
                       </div>
                     )}
                   </div>
@@ -2642,103 +2579,66 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* LEFT SIDE: List of Orders */}
-            <div className="lg:col-span-2 order-2 lg:order-2">
-              {/* Stats Summary */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-zinc-400 text-xs mb-1">الكل</p>
-                  <p className="text-xl font-bold text-white">{orders.length}</p>
-                </div>
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-                  <p className="text-zinc-400 text-xs mb-1">نشط</p>
-                  <p className="text-xl font-bold text-emerald-400">{orders.filter(k => k.status === 'active').length}</p>
-                </div>
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-                  <p className="text-zinc-400 text-xs mb-1">محظور</p>
-                  <p className="text-xl font-bold text-red-400">{orders.filter(k => k.status === 'banned').length}</p>
-                </div>
-                <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 text-center">
-                  <p className="text-zinc-400 text-xs mb-1">مُجمّد</p>
-                  <p className="text-xl font-bold text-cyan-400">{orders.filter(k => k.status === 'frozen').length}</p>
-                </div>
+            {/* LEFT: Keys List */}
+            <div className="lg:col-span-2 order-2">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">الكل</p><p className="text-xl font-bold text-white">{keys.length}</p></div>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">سبوفر</p><p className="text-xl font-bold text-blue-400">{keys.filter(k => k.productType === 'spoofer').length}</p></div>
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">فورت نايت</p><p className="text-xl font-bold text-purple-400">{keys.filter(k => k.productType === 'fortnite').length}</p></div>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">مُفعّل</p><p className="text-xl font-bold text-emerald-400">{keys.filter(k => k.status === 'active').length}</p></div>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">غير مستخدم</p><p className="text-xl font-bold text-yellow-400">{keys.filter(k => k.status === 'unused').length}</p></div>
               </div>
 
-              {/* Orders List */}
+              {/* Tabs */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {[
+                  { id: 'spoofer' as const, label: 'سبوفر', icon: <Cpu className="w-4 h-4" />, color: 'blue' },
+                  { id: 'fortnite' as const, label: 'فورت نايت', icon: <Gamepad2 className="w-4 h-4" />, color: 'purple' },
+                  { id: 'used' as const, label: 'المستخدمة', icon: <CheckCircle2 className="w-4 h-4" />, color: 'emerald' },
+                  { id: 'banned' as const, label: 'المحظورة', icon: <Ban className="w-4 h-4" />, color: 'red' },
+                  { id: 'frozen' as const, label: 'المجمدة', icon: <Snowflake className="w-4 h-4" />, color: 'cyan' },
+                ].map(tab => (
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === tab.id ? `bg-${tab.color}-600 text-white shadow-lg` : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                    {tab.icon} {tab.label} ({filteredKeys.length === keys.filter(k => { if(tab.id==='spoofer') return k.productType==='spoofer'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length && activeTab === tab.id ? filteredKeys.length : keys.filter(k => { if(tab.id==='spoofer') return k.productType==='spoofer'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length})
+                  </button>
+                ))}
+              </div>
+
               {loading ? (
-                <div className="flex items-center justify-center h-40">
-                  <div className="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-                </div>
+                <div className="flex items-center justify-center h-40"><div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" /></div>
               ) : (
                 <div className="space-y-3">
-                  {orders.map((k) => {
-                    const st = getOrderStatus(k);
+                  {filteredKeys.map((k) => {
+                    const st = getKeyStatus(k);
                     return (
-                      <motion.div
-                        key={k.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all"
-                      >
+                      <motion.div key={k.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-all">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                          {/* Order Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2">
-                              <button onClick={() => handleCopyOrder(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-amber-400 transition-colors cursor-pointer" title="نسخ رقم الطلب">
-                                {k.id}
-                              </button>
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>
-                                {st.icon} {st.text}
-                              </span>
+                              <button onClick={() => navigator.clipboard.writeText(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-emerald-400 transition-colors" title="نسخ">{k.id}</button>
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>{st.icon} {st.text}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${k.productType === 'spoofer' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>{k.productType === 'spoofer' ? '🛡️ سبوفر' : '🎮 فورت نايت'}</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
-                              {k.usedByEmail && (
-                                <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>
-                              )}
-                              {k.activatedAt && (
-                                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> فُعّل: {new Date(k.activatedAt).toLocaleString('ar-SA')}</span>
-                              )}
+                              {k.usedByEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>}
+                              {k.usedByName && <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {k.usedByName}</span>}
+                              {k.activatedAt && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(k.activatedAt).toLocaleString('ar-SA')}</span>}
+                              {!k.usedByUid && <span className="text-yellow-500">🔑 لم يُستخدم بعد</span>}
                             </div>
                           </div>
-
-                          {/* Actions */}
                           <div className="flex items-center gap-2 shrink-0">
-                            {k.status !== 'banned' && k.status !== 'frozen' && (
-                              <button onClick={() => handleBan(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all" title="حظر الطلب">
-                                <Ban className="w-4 h-4" />
-                              </button>
-                            )}
-                            {k.status === 'banned' && (
-                              <button onClick={() => handleUnban(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all" title="فك الحظر">
-                                <CheckCircle2 className="w-4 h-4" />
-                              </button>
-                            )}
-                            {k.status !== 'frozen' && k.status !== 'banned' && (
-                              <button onClick={() => handleFreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all" title="تجميد مؤقت">
-                                <Snowflake className="w-4 h-4" />
-                              </button>
-                            )}
-                            {k.status === 'frozen' && (
-                              <button onClick={() => handleUnfreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all" title="إلغاء التجميد">
-                                <Play className="w-4 h-4" />
-                              </button>
-                            )}
-                            <button onClick={() => handleDelete(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all" title="حذف نهائي">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {k.status !== 'banned' && k.status !== 'frozen' && <button onClick={() => handleBan(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all" title="حظر"><Ban className="w-4 h-4" /></button>}
+                            {k.status === 'banned' && <button onClick={() => handleUnban(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all" title="فك الحظر"><CheckCircle2 className="w-4 h-4" /></button>}
+                            {k.status !== 'frozen' && k.status !== 'banned' && <button onClick={() => handleFreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all" title="تجميد"><Snowflake className="w-4 h-4" /></button>}
+                            {k.status === 'frozen' && <button onClick={() => handleUnfreeze(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all" title="إلغاء التجميد"><Play className="w-4 h-4" /></button>}
+                            <button onClick={() => handleDelete(k.id)} disabled={actionLoading === k.id} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/30 transition-all" title="حذف"><Trash2 className="w-4 h-4" /></button>
                             {actionLoading === k.id && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                           </div>
                         </div>
                       </motion.div>
                     );
                   })}
-                  {orders.length === 0 && (
-                    <div className="text-center py-16 text-zinc-500">
-                      <Hash className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                      <p className="text-lg">لا يوجد طلبات بعد</p>
-                      <p className="text-sm mt-1">سيظهر هنا أي رقم طلب يتم تفعيله من الزبائن</p>
-                    </div>
-                  )}
+                  {filteredKeys.length === 0 && <div className="text-center py-16 text-zinc-500"><Key className="w-12 h-12 mx-auto mb-4 opacity-30" /><p className="text-lg">لا توجد مفاتيح في هذا القسم</p></div>}
                 </div>
               )}
             </div>
@@ -2749,12 +2649,11 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
     document.body
   );
 }
-
 // 🔒 Admin Dashboard Component - Only accessible by admin
 function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'banned' | 'admins' | 'logins'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'keys' | 'banned' | 'admins' | 'logins'>('users');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState('');
 
@@ -2902,8 +2801,8 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                 <button onClick={() => setActiveTab('logins')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'logins' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> تسجيل الدخول ({stats.users.length})</span>
                 </button>
-                <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'orders' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
-                  <span className="flex items-center gap-2"><Hash className="w-4 h-4" /> الطلبات ({stats.totalOrders})</span>
+                <button onClick={() => setActiveTab('keys')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'keys' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                  <span className="flex items-center gap-2"><Key className="w-4 h-4" /> المفاتيح ({stats.totalKeys})</span>
                 </button>
                 <button onClick={() => setActiveTab('banned')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'banned' ? 'bg-red-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><ShieldOff className="w-4 h-4" /> المحظورين ({stats.bannedCount})</span>
@@ -3061,36 +2960,39 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
               )}
 
 
-              {/* Orders Tab */}
-              {activeTab === 'orders' && (
+              {/* Keys Tab */}
+              {activeTab === 'keys' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   {/* Stats Row */}
                   <div className="grid grid-cols-4 gap-3 mb-6">
                     <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center">
                       <span className="text-zinc-400 text-xs mb-1 font-bold">الكل</span>
-                      <span className="text-white font-bold">{stats.orders.length}</span>
+                      <span className="text-white font-bold">{stats.keys.length}</span>
                     </div>
                     <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 flex flex-col items-center">
                       <span className="text-emerald-400 text-xs mb-1 font-bold">نشط</span>
-                      <span className="text-emerald-400 font-bold">{stats.orders.filter((o:any)=>!o.status || o.status==='active').length}</span>
+                      <span className="text-emerald-400 font-bold">{stats.usedKeys}</span>
                     </div>
                     <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4 flex flex-col items-center">
                       <span className="text-red-400 text-xs mb-1 font-bold">محظور</span>
-                      <span className="text-red-400 font-bold">{stats.orders.filter((o:any)=>o.status==='banned').length}</span>
+                      <span className="text-red-400 font-bold">{stats.bannedKeys}</span>
                     </div>
                     <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-xl p-4 flex flex-col items-center">
                       <span className="text-cyan-400 text-xs mb-1 font-bold">مجمد</span>
-                      <span className="text-cyan-400 font-bold">{stats.orders.filter((o:any)=>o.status==='frozen').length}</span>
+                      <span className="text-cyan-400 font-bold">{stats.frozenKeys}</span>
                     </div>
                   </div>
 
-                  {/* Orders List */}
+                  {/* Keys List */}
                   <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
-                    {stats.orders.map((k: any, i: number) => {
-                      let statusText = 'نشط';
-                      let badgeColors = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                    {stats.keys.map((k: any, i: number) => {
+                      let statusText = 'غير مستخدم';
+                      let badgeColors = 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
                       
-                      if (k.status === 'banned') {
+                      if (k.status === 'active') {
+                        statusText = 'نشط';
+                        badgeColors = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                      } else if (k.status === 'banned') {
                         statusText = 'محظور';
                         badgeColors = 'bg-red-500/20 text-red-500 border-red-500/30';
                       } else if (k.status === 'frozen') {
@@ -3105,22 +3007,29 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                             <button onClick={() => handleDelete(k.usedByUid, k.id)} className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-all opacity-70 group-hover:opacity-100" title="حذف">
                               <Trash2 className="w-4 h-4" />
                             </button>
-                            <button className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all opacity-70 group-hover:opacity-100" title="تجميد">
-                              <Snowflake className="w-4 h-4" />
-                            </button>
-                            <button className="w-8 h-8 rounded-lg bg-red-500/5 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all opacity-70 group-hover:opacity-100" title="حظر">
-                              <Ban className="w-4 h-4" />
-                            </button>
+                            {k.status !== 'frozen' && k.status !== 'banned' && (
+                              <button className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all opacity-70 group-hover:opacity-100" title="تجميد">
+                                <Snowflake className="w-4 h-4" />
+                              </button>
+                            )}
+                            {k.status !== 'banned' && k.status !== 'frozen' && (
+                              <button className="w-8 h-8 rounded-lg bg-red-500/5 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all opacity-70 group-hover:opacity-100" title="حظر">
+                                <Ban className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
 
                           {/* Right Info */}
                           <div className="text-right">
                             <div className="flex items-center justify-end gap-3 mb-2">
-                              <span className={`px-2 py-0.5 rounded text-xs font-bold border ${badgeColors} flex items-center gap-1`}>
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold border ${k.productType === 'spoofer' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border-purple-500/30'} flex items-center gap-1`}>
+                                {k.productType === 'spoofer' ? '🛡️ سبوفر' : '🎮 فورت نايت'}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold border ${badgeColors} flex items-center gap-1`}>
                                 {statusText === 'نشط' && <Check className="w-3 h-3" />}
                                 {statusText}
                               </span>
-                              <span className="text-white font-bold text-lg tracking-wider">{k.id}</span>
+                              <span className="text-white font-bold text-lg tracking-wider font-mono">{k.id}</span>
                             </div>
                             <div className="flex items-center justify-end gap-4 text-xs text-zinc-500">
                               {k.activatedAt && (
@@ -3138,8 +3047,8 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                         </div>
                       )
                     })}
-                    {stats.orders.length === 0 && (
-                      <div className="p-8 text-center text-zinc-500 bg-white/5 rounded-xl">لا يوجد أرقام طلبات مرتبطة حالياً</div>
+                    {stats.keys.length === 0 && (
+                      <div className="p-8 text-center text-zinc-500 bg-white/5 rounded-xl">لا توجد مفاتيح حالياً</div>
                     )}
                   </div>
                 </motion.div>
@@ -3408,7 +3317,7 @@ function MaintenanceScreen() {
 export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
-  const [productType, setProductType] = useState<string>('spoofer'); // 'spoofer' | 'fortnite'
+  const [activatedProducts, setActivatedProducts] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -3549,7 +3458,6 @@ export default function App() {
         const isVIP = await checkUserVIP(currentUser.uid);
         setIsVerifiedCustomer(isVIP);
 
-        // Load productType from Firestore user document
         if (isVIP) {
           try {
             const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
@@ -3557,11 +3465,11 @@ export default function App() {
             const userDocRef = firestoreDoc(firestoreDb, 'users', currentUser.uid);
             const userDocSnap = await getDoc(userDocRef);
             if (userDocSnap.exists()) {
-              const pt = userDocSnap.data()?.productType;
-              if (pt) setProductType(pt);
+              const prods = userDocSnap.data()?.activatedProducts;
+              if (prods && Array.isArray(prods)) setActivatedProducts(prods);
             }
           } catch (e) {
-            console.log('Could not load productType, using default');
+            console.log('Could not load activatedProducts');
           }
         }
 
@@ -3830,24 +3738,24 @@ export default function App() {
         <OrderDelivery 
           user={user}
           onLogin={() => setShowLoginModal(true)}
-          onVerify={async (orderId) => {
+          onVerify={async (keyId) => {
             setIsVerifiedCustomer(true);
-            // Get productType from the activated order
             try {
               const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
               const { db: firestoreDb } = await import('./lib/firebase');
-              const orderDocRef = firestoreDoc(firestoreDb, 'orders', orderId);
-              const orderDocSnap = await getDoc(orderDocRef);
-              if (orderDocSnap.exists()) {
-                const pt = orderDocSnap.data()?.productType;
-                if (pt) setProductType(pt);
+              const userDocRef = firestoreDoc(firestoreDb, 'users', user!.uid);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                const prods = userDocSnap.data()?.activatedProducts;
+                if (prods && Array.isArray(prods)) setActivatedProducts(prods);
               }
             } catch (e) {
-              console.log('Could not read productType from order');
+              console.log('Could not read activatedProducts');
             }
           }}
           onFortniteClick={() => setShowFortniteGuide(true)}
-          productType={productType}
+          onSpooferClick={() => setShowSpooferGuide(true)}
+          activatedProducts={activatedProducts}
         />
         <Products />
         <Reviews />
