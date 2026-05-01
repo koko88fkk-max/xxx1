@@ -163,15 +163,15 @@ export async function checkUserVIP(uid: string) {
       if (needsRepair) {
         await setDoc(userRef, { activatedProducts: finalProducts }, { merge: true });
       }
-      return true;
+      return { isVIP: true, products: finalProducts };
     }
 
     if (keys.length > 0) {
       await setDoc(userRef, { isVIP: false }, { merge: true });
     }
-    return false;
+    return { isVIP: false, products: [] };
   }
-  return false;
+  return { isVIP: false, products: [] };
 }
 
 // ==========================================

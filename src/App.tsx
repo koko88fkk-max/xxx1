@@ -3453,21 +3453,12 @@ export default function App() {
           setBanReason(null);
         }
 
-        const isVIP = await checkUserVIP(currentUser.uid);
-        setIsVerifiedCustomer(isVIP);
+        const vipResult = await checkUserVIP(currentUser.uid);
+        setIsVerifiedCustomer(vipResult.isVIP);
 
-        if (isVIP) {
-          try {
-            const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
-            const { db: firestoreDb } = await import('./lib/firebase');
-            const userDocRef = firestoreDoc(firestoreDb, 'users', currentUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-              const prods = userDocSnap.data()?.activatedProducts;
-              if (prods && Array.isArray(prods)) setActivatedProducts(prods);
-            }
-          } catch (e) {
-            console.log('Could not load activatedProducts');
+        if (vipResult.isVIP) {
+          if (vipResult.products && Array.isArray(vipResult.products)) {
+            setActivatedProducts(vipResult.products);
           }
         }
 
@@ -3687,6 +3678,7 @@ export default function App() {
         unreadCount={unreadCount}
         onReadNotifications={handleReadNotifications}
         isAdminUser={isAdminUser}
+        activatedProducts={activatedProducts}
       />
 
       {/* Admin Button - Only visible to admin */}
