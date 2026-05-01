@@ -565,5 +565,19 @@ export async function verifyPhoneOTP(confirmationResult: any, code: string) {
   }
 }
 
+// 🚧 Maintenance Mode Functions
+export function listenToMaintenanceMode(callback: (isMaintenance: boolean) => void) {
+  const settingsRef = doc(db, "settings", "global");
+  return onSnapshot(settingsRef, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().maintenance === true);
+    } else {
+      callback(false);
+    }
+  });
+}
 
-
+export async function toggleMaintenanceMode(currentState: boolean) {
+  const settingsRef = doc(db, "settings", "global");
+  await setDoc(settingsRef, { maintenance: !currentState }, { merge: true });
+}

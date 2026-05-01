@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List } from 'lucide-react';
-import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications, deleteNotification } from './lib/firebase';
+import { auth, loginWithGoogle, logout, checkUserVIP, activateOrder, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllOrders, deleteOrder, banOrder, unbanOrder, freezeOrder, unfreezeOrder, isValidOrderFormat, trackSiteVisit, checkOrderStatus, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 import LoginModal from './LoginModal';
 
@@ -3354,6 +3354,57 @@ function FortniteGuide({ onClose }: { onClose: () => void }) {
   );
 }
 
+function MaintenanceScreen() {
+  return (
+    <div className="fixed inset-0 z-[9999] bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-blue-900/10 mix-blend-screen" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+      
+      {/* Grid Pattern */}
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 max-w-2xl flex flex-col items-center glass-panel p-12 rounded-[3rem] border border-white/5 shadow-2xl"
+      >
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="w-32 h-32 mb-8 relative flex items-center justify-center bg-orange-500/10 rounded-full border border-orange-500/20 shadow-[0_0_50px_rgba(249,115,22,0.2)]"
+        >
+          <div className="absolute inset-0 bg-orange-500/20 rounded-full animate-ping opacity-50"></div>
+          <Wrench className="w-16 h-16 text-orange-400 relative z-10" />
+        </motion.div>
+        
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-br from-white via-orange-200 to-orange-500 drop-shadow-md">
+          الموقع تحت التحديث والصيانة
+        </h1>
+        
+        <p className="text-lg md:text-xl text-zinc-400 mb-10 leading-relaxed max-w-lg">
+          نعمل حالياً على تطوير وترقية <span className="text-white font-bold">متجر تعن</span> لتقديم تجربة أفضل وأكثر أماناً لكم. سنعود للعمل في أقرب وقت ممكن.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <motion.a 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            href={DISCORD_URL} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-[0_10px_25px_rgba(88,101,242,0.4)]"
+          >
+            <MessageCircle className="w-6 h-6" />
+            تواصل معنا عبر الديسكورد
+          </motion.a>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
@@ -3365,6 +3416,7 @@ export default function App() {
   const [showFortniteGuide, setShowFortniteGuide] = useState(false);
   const [showSiteGuide, setShowSiteGuide] = useState(false);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showKeyManager, setShowKeyManager] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -3396,7 +3448,15 @@ export default function App() {
         }
       }
     });
-    return () => unsub();
+
+    const unsubMaintenance = listenToMaintenanceMode((mode) => {
+      setIsMaintenance(mode);
+    });
+
+    return () => {
+      unsub();
+      unsubMaintenance();
+    };
   }, []);
 
   const handleReadNotifications = () => {
@@ -3594,6 +3654,15 @@ export default function App() {
     );
   }
 
+  if (appLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Show Maintenance Screen if active and user is not admin
+  if (isMaintenance && !isAdminUser && !authLoading) {
+    return <MaintenanceScreen />;
+  }
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#06060c] text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
       {/* 🚀 Initial Loading Screen */}
@@ -3720,16 +3789,31 @@ export default function App() {
 
       {/* Admin Button - Only visible to admin */}
       {user && isAdminUser && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowAdmin(true)}
-          className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(239,68,68,0.4)] border border-red-400/30 hover:shadow-[0_8px_35px_rgba(239,68,68,0.6)] transition-shadow"
-        >
-          <LayoutDashboard className="w-5 h-5" />
-        </motion.button>
+        <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-4">
+          <motion.button
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => toggleMaintenanceMode(isMaintenance)}
+            className={`w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg border transition-all duration-300 ${isMaintenance ? 'bg-orange-600 border-orange-400/50 shadow-[0_8px_25px_rgba(234,88,12,0.5)]' : 'bg-black/60 backdrop-blur-md border-white/10 hover:border-orange-500/50 hover:bg-black/80 shadow-xl hover:shadow-[0_8px_25px_rgba(249,115,22,0.3)]'}`}
+            title={isMaintenance ? "الموقع في وضع الصيانة - اضغط للإيقاف" : "تفعيل وضع الصيانة"}
+          >
+            {isMaintenance ? <Wrench className="w-6 h-6 animate-pulse" /> : <ShieldAlert className="w-6 h-6 text-orange-400/70" />}
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowAdmin(true)}
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(239,68,68,0.4)] border border-red-400/30 hover:shadow-[0_8px_35px_rgba(239,68,68,0.6)] transition-shadow"
+            title="لوحة التحكم"
+          >
+            <LayoutDashboard className="w-6 h-6" />
+          </motion.button>
+        </div>
       )}
 
       {/* 📦 Order Management Button - Only visible to admin, right side */}
