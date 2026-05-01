@@ -149,16 +149,19 @@ export async function checkUserVIP(uid: string) {
           continue;
         }
         hasValidKey = true;
-        if (kd.productType && !newProducts.has(kd.productType)) {
-          newProducts.add(kd.productType);
+        const pt = kd.productType || 'spoofer'; // Fallback for old keys
+        if (pt && pt !== '') {
+          newProducts.add(pt);
         }
       }
     }
 
     if (hasValidKey) {
-      // Auto-repair missing products if needed
-      if (newProducts.size > currentProducts.length) {
-        await setDoc(userRef, { activatedProducts: Array.from(newProducts) }, { merge: true });
+      const finalProducts = Array.from(newProducts);
+      // Auto-repair if length differs or any item differs
+      const needsRepair = finalProducts.length !== currentProducts.length || !finalProducts.every(p => currentProducts.includes(p));
+      if (needsRepair) {
+        await setDoc(userRef, { activatedProducts: finalProducts }, { merge: true });
       }
       return true;
     }
@@ -222,11 +225,20 @@ export async function activateKey(keyId: string, uid: string, email: string, use
     if (kd.status === 'banned') return { success: false, error: 'هذا المفتاح محظور' };
     if (kd.status === 'frozen') return { success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' };
     if (kd.usedByUid && kd.usedByUid !== uid) return { success: false, error: 'هذا المفتاح مرتبط بحساب آخر' };
+    const pt = kd.productType || 'spoofer'; // Fallback for old keys
+
     if (kd.usedByUid === uid) {
       const userRef = doc(db, "users", uid);
       const userSnap = await getDoc(userRef);
-      const prods = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
-      return { success: true, productType: kd.productType, activatedProducts: prods };
+      let prods: string[] = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
+      
+      // Auto-repair on re-activation if missing
+      if (pt && !prods.includes(pt)) {
+        prods.push(pt);
+        await setDoc(userRef, { activatedProducts: prods }, { merge: true });
+      }
+
+      return { success: true, productType: pt, activatedProducts: prods };
     }
     const now = new Date();
     await setDoc(keyRef, {
@@ -234,19 +246,20 @@ export async function activateKey(keyId: string, uid: string, email: string, use
       usedByUid: uid, usedByEmail: email,
       usedByName: userData?.displayName || null,
       usedByPhoto: userData?.photoURL || null,
-      usedByProvider: userData?.provider || 'google'
+      usedByProvider: userData?.provider || 'google',
+      productType: pt
     }, { merge: true });
     const userRef = doc(db, "users", uid);
     const userSnap = await getDoc(userRef);
     const existingProducts: string[] = userSnap.exists() ? (userSnap.data().activatedProducts || []) : [];
     const existingKeys: string[] = userSnap.exists() ? (userSnap.data().activatedKeys || []) : [];
-    if (!existingProducts.includes(kd.productType)) existingProducts.push(kd.productType);
+    if (!existingProducts.includes(pt)) existingProducts.push(pt);
     if (!existingKeys.includes(cleaned)) existingKeys.push(cleaned);
     await setDoc(userRef, {
       isVIP: true, activatedProducts: existingProducts, activatedKeys: existingKeys,
       email, verifiedAt: now.toISOString()
     }, { merge: true });
-    return { success: true, productType: kd.productType, activatedProducts: existingProducts };
+    return { success: true, productType: pt, activatedProducts: existingProducts };
   } catch (err: any) {
     console.error('activateKey error:', err);
     if (err?.code === 'permission-denied') return { success: false, error: 'ليس لديك صلاحية' };
