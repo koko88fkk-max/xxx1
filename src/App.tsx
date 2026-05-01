@@ -724,7 +724,7 @@ function CustomVideoPlayer() {
   );
 }
 
-function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClick, activatedProducts }: { onVerify?: (keyId: string) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, onSpooferClick?: () => void, activatedProducts?: string[] }) {
+function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClick, activatedProducts }: { onVerify?: (keyId: string, products: string[]) => void, user?: User | null, onLogin?: () => void, onFortniteClick?: () => void, onSpooferClick?: () => void, activatedProducts?: string[] }) {
   const [orderInput, setOrderInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -740,7 +740,7 @@ function OrderDelivery({ onVerify, user, onLogin, onFortniteClick, onSpooferClic
       const result = await activateKey(orderInput.trim(), user.uid, user.email || '', { displayName: user.displayName || undefined, photoURL: user.photoURL || undefined, provider: 'google' });
       if (result.success) {
         setLastActivatedType(result.productType || '');
-        setTimeout(() => { setStatus('success'); if (onVerify) onVerify(orderInput.trim()); }, 1500);
+        setTimeout(() => { setStatus('success'); if (onVerify) onVerify(orderInput.trim(), result.activatedProducts || []); }, 1500);
       } else { setStatus('error'); setErrorMsg(result.error || 'حدث خطأ'); }
     } catch (e: any) { setStatus('error'); setErrorMsg(e?.message || 'حدث خطأ غير متوقع'); }
   };
@@ -3717,19 +3717,23 @@ export default function App() {
         <OrderDelivery 
           user={user}
           onLogin={() => setShowLoginModal(true)}
-          onVerify={async (keyId) => {
+          onVerify={async (keyId, products) => {
             setIsVerifiedCustomer(true);
-            try {
-              const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
-              const { db: firestoreDb } = await import('./lib/firebase');
-              const userDocRef = firestoreDoc(firestoreDb, 'users', user!.uid);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const prods = userDocSnap.data()?.activatedProducts;
-                if (prods && Array.isArray(prods)) setActivatedProducts(prods);
+            if (products && Array.isArray(products) && products.length > 0) {
+              setActivatedProducts(products);
+            } else {
+              try {
+                const { doc: firestoreDoc, getDoc } = await import('firebase/firestore');
+                const { db: firestoreDb } = await import('./lib/firebase');
+                const userDocRef = firestoreDoc(firestoreDb, 'users', user!.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                  const prods = userDocSnap.data()?.activatedProducts;
+                  if (prods && Array.isArray(prods)) setActivatedProducts(prods);
+                }
+              } catch (e) {
+                console.log('Could not read activatedProducts');
               }
-            } catch (e) {
-              console.log('Could not read activatedProducts');
             }
           }}
           onFortniteClick={() => setShowFortniteGuide(true)}
