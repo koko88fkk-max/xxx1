@@ -51,8 +51,9 @@ export default async function handler(req, res) {
     if (kd.status === 'frozen') return res.status(403).json({ success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' });
     if (kd.usedByUid && kd.usedByUid !== uid) return res.status(403).json({ success: false, error: 'هذا المفتاح مرتبط بحساب آخر' });
     
-    // Default fallback to spoofer if no type (but they only have spoofer and fortnite-hack)
-    const pt = kd.productType === 'superstar' ? 'spoofer' : (kd.productType || 'spoofer');
+    // Match existing frontend IDs: 'superstar' (Spoofer) and 'fortnite-hack'
+    let pt = kd.productType === 'spoofer' ? 'superstar' : (kd.productType || 'superstar');
+    if (pt === 'fortnite') pt = 'fortnite-hack'; // Migrate old 'fortnite' keys to 'fortnite-hack'
 
     // If already activated by the same user, just auto-repair products
     if (kd.usedByUid === uid) {

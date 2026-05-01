@@ -214,7 +214,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
                           className="w-full text-right px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                           <Cpu className="w-4 h-4" />
-                          شرح السبوفر (سوبر ستار)
+                          شرح السبوفر
                         </button>
                       )}
                       {activatedProducts.includes('fortnite-hack') && (
@@ -1727,6 +1727,24 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
             </div>
+
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors mt-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                  <FileArchive className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="text-right flex-1">
+                  <h4 className="font-bold text-lg text-white">سبوفر تعن</h4>
+                  <p className="text-xs text-zinc-400 mt-1">الملف الرئيسي للسبوفر</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => { const a=document.createElement('a'); a.href='/discord.gg_t3n.rar'; a.download='discord.gg_t3n.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+              >
+                <Download className="w-5 h-5" /> تحميل الملف
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -2493,8 +2511,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                   <div>
                     <label className="text-zinc-400 text-xs mb-1 block">المنتج</label>
                     <div className="flex gap-2">
-                      <button onClick={() => setCreateType('superstar')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'superstar' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سوبر ستار</button>
-                      <button onClick={() => setCreateType('fortnite')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite' ? 'bg-purple-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Gamepad2 className="w-4 h-4 inline mr-1" />فورت نايت</button>
+                      <button onClick={() => setCreateType('superstar')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'superstar' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سبوفر</button>
                       <button onClick={() => setCreateType('fortnite-hack')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite-hack' ? 'bg-red-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Crosshair className="w-4 h-4 inline mr-1" />هاك فورت</button>
                     </div>
                   </div>
@@ -3772,6 +3789,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
