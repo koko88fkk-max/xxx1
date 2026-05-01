@@ -3127,7 +3127,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
   );
 }
 
-function FortniteGuide({ onClose }: { onClose: () => void }) {
+function FortniteHackGuide({ onClose }: { onClose: () => void }) {
   React.useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'unset'; };
@@ -3753,10 +3753,6 @@ export default function App() {
 
       {/* Floating Buttons Removed as requested */}
 
-      <AnimatePresence>
-        {showSpooferGuide && <SpooferGuide onClose={() => setShowSpooferGuide(false)} />}
-        {showFortniteGuide && <FortniteGuide onClose={() => setShowFortniteGuide(false)} />}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showTroubleshoot && <TroubleshootGuide onClose={() => setShowTroubleshoot(false)} />}
