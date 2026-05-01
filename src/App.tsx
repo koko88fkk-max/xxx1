@@ -935,24 +935,24 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
 
                     {/* === FORTNITE HACK SECTION === */}
                     {(activatedProducts?.includes('fortnite') || lastActivatedType === 'fortnite') && (
-                      <div className="bg-black/40 border border-red-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors hover:border-red-500/50">
+                      <div className="bg-black/40 border border-blue-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors hover:border-blue-500/50">
                         <div className="flex items-center gap-4 mb-4 w-full">
-                          <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20 shrink-0">
-                            <Crosshair className="w-6 h-6 text-red-400" />
+                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                            <Gamepad2 className="w-6 h-6 text-blue-400" />
                           </div>
                           <div className="text-right flex-1">
-                            <h4 className="font-bold text-lg text-white">هاك فورت نايت</h4>
-                            <p className="text-xs text-zinc-400 mt-1">شرح وتحميل ملفات الهاك.</p>
+                            <h4 className="font-bold text-lg text-white">فورت نايت</h4>
+                            <p className="text-xs text-zinc-400 mt-1">شرح وتحميل ملفات المنتج.</p>
                           </div>
                         </div>
                         <motion.button 
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={onFortniteHackClick}
-                          className="w-full bg-red-500 text-white hover:bg-red-600 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+                          className="w-full bg-blue-600 text-white hover:bg-blue-500 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
                         >
                           <MonitorPlay className="w-5 h-5" />
-                          الانتقال لشرح هاك فورت نايت
+                          الانتقال لشرح فورت نايت
                         </motion.button>
                       </div>
                     )}
@@ -2486,9 +2486,8 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
   };
 
   const filteredKeys = keys.filter(k => {
-    if (activeTab === 'superstar') return k.productType === 'superstar' && k.status !== 'banned' && k.status !== 'frozen';
+    if (activeTab === 'spoofer') return (k.productType === 'superstar' || k.productType === 'spoofer') && k.status !== 'banned' && k.status !== 'frozen';
     if (activeTab === 'fortnite') return k.productType === 'fortnite' && k.status !== 'banned' && k.status !== 'frozen';
-    if (activeTab === 'fortnite-hack') return k.productType === 'fortnite-hack' && k.status !== 'banned' && k.status !== 'frozen';
     if (activeTab === 'used') return k.status === 'active';
     if (activeTab === 'banned') return k.status === 'banned';
     if (activeTab === 'frozen') return k.status === 'frozen';
@@ -2601,7 +2600,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                   { id: 'frozen' as const, label: 'المجمدة', icon: <Snowflake className="w-4 h-4" />, color: 'cyan' },
                 ].map(tab => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === tab.id ? `bg-${tab.color}-600 text-white shadow-lg` : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
-                    {tab.icon} {tab.label} ({filteredKeys.length === keys.filter(k => { if(tab.id==='spoofer') return k.productType==='spoofer'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length && activeTab === tab.id ? filteredKeys.length : keys.filter(k => { if(tab.id==='spoofer') return k.productType==='spoofer'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length})
+                    {tab.icon} {tab.label} ({filteredKeys.length === keys.filter(k => { if(tab.id==='spoofer') return (k.productType==='spoofer'||k.productType==='superstar')&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length && activeTab === tab.id ? filteredKeys.length : keys.filter(k => { if(tab.id==='spoofer') return (k.productType==='spoofer'||k.productType==='superstar')&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='fortnite') return k.productType==='fortnite'&&k.status!=='banned'&&k.status!=='frozen'; if(tab.id==='used') return k.status==='active'; if(tab.id==='banned') return k.status==='banned'; if(tab.id==='frozen') return k.status==='frozen'; return false; }).length})
                   </button>
                 ))}
               </div>
@@ -2619,7 +2618,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                             <div className="flex items-center gap-3 mb-2">
                               <button onClick={() => navigator.clipboard.writeText(k.id)} className="text-white font-mono font-bold text-lg tracking-wider hover:text-emerald-400 transition-colors" title="نسخ">{k.id}</button>
                               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>{st.icon} {st.text}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${k.productType === 'superstar' ? 'bg-blue-500/20 text-blue-400' : k.productType === 'fortnite' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'}`}>{k.productType === 'superstar' ? '🛡️ سوبر ستار' : k.productType === 'fortnite' ? '🎮 فورت نايت' : '🎯 هاك فورت'}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${k.productType === 'superstar' || k.productType === 'spoofer' ? 'bg-blue-500/20 text-blue-400' : k.productType === 'fortnite' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'}`}>{k.productType === 'superstar' || k.productType === 'spoofer' ? '🛡️ سبوفر' : k.productType === 'fortnite' ? '🎮 فورت نايت' : '🎯 هاك فورت'}</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500">
                               {k.usedByEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>}
