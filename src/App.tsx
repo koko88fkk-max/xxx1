@@ -1639,7 +1639,31 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-16 max-w-4xl relative z-10">
+      <div className="container mx-auto px-4 py-16 max-w-6xl relative z-10 flex flex-col lg:flex-row gap-8 items-start">
+        
+        {/* RIGHT SIDEBAR (Sticky Download Box) */}
+        <div className="w-full lg:w-80 shrink-0 sticky top-28 order-1">
+          <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors">
+            <div className="flex items-center gap-4 mb-4 w-full">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                <FileArchive className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="text-right flex-1">
+                <h4 className="font-bold text-lg text-white">سبوفر تعن</h4>
+                <p className="text-xs text-zinc-400 mt-1">الملف الرئيسي للسبوفر</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => { const a=document.createElement('a'); a.href='/discord.gg_t3n.rar'; a.download='discord.gg_t3n.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
+            >
+              <Download className="w-5 h-5" /> تحميل الملف
+            </button>
+          </div>
+        </div>
+
+        {/* LEFT MAIN CONTENT */}
+        <div className="flex-1 order-2 w-full max-w-4xl">
         
         {/* Title */}
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
@@ -1726,24 +1750,6 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
                 <source src="/video-spoofer.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
-            </div>
-
-            <div className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors mt-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-                  <FileArchive className="w-6 h-6 text-blue-400" />
-                </div>
-                <div className="text-right flex-1">
-                  <h4 className="font-bold text-lg text-white">سبوفر تعن</h4>
-                  <p className="text-xs text-zinc-400 mt-1">الملف الرئيسي للسبوفر</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => { const a=document.createElement('a'); a.href='/discord.gg_t3n.rar'; a.download='discord.gg_t3n.rar'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md"
-              >
-                <Download className="w-5 h-5" /> تحميل الملف
-              </button>
             </div>
           </div>
         </motion.div>
@@ -1879,6 +1885,8 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
             الرجوع للصفحة الرئيسية
           </motion.button>
         </div>
+        
+        </div> {/* End of Main Content Left Side */}
       </div>
     </motion.div>,
     document.body
