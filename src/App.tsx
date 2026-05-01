@@ -217,7 +217,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
                           شرح السبوفر
                         </button>
                       )}
-                      {activatedProducts.includes('fortnite-hack') && (
+                      {activatedProducts.includes('fortnite') && (
                         <button 
                           onClick={onFortniteHackClick}
                           className="w-full text-right px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
@@ -486,7 +486,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
                       شرح السبوفر (سوبر ستار)
                     </button>
                   )}
-                  {activatedProducts.includes('fortnite-hack') && (
+                  {activatedProducts.includes('fortnite') && (
                     <button 
                       onClick={() => { setMobileMenuOpen(false); onFortniteHackClick?.(); }}
                       className="text-red-400 font-bold flex items-center justify-center gap-2 bg-red-500/10 px-6 py-3 rounded-2xl border border-red-500/20 w-full hover:bg-red-500/20 transition-colors"
@@ -934,7 +934,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                     )}
 
                     {/* === FORTNITE HACK SECTION === */}
-                    {(activatedProducts?.includes('fortnite-hack') || lastActivatedType === 'fortnite-hack') && (
+                    {(activatedProducts?.includes('fortnite') || lastActivatedType === 'fortnite') && (
                       <div className="bg-black/40 border border-red-500/30 rounded-2xl p-5 flex flex-col items-center shadow-lg transition-colors hover:border-red-500/50">
                         <div className="flex items-center gap-4 mb-4 w-full">
                           <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center border border-red-500/20 shrink-0">
@@ -1033,7 +1033,7 @@ function Products() {
   const products = [
     {
       id: 1,
-      title: "السبوفر المتميز (سوبر ستار)",
+      title: "السبوفر المتميز",
       desc: "أقوى أداة سبوفر تدعم جميع المذربوردات وحمايات الألعاب. استعمال مرة واحدة لفك الحظر نهائياً للأبد بضمان كامل.",
       url: "https://salla.sa/t3nn",
       image: "/product-spoofer-perm.jpg",
@@ -2524,7 +2524,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                     <label className="text-zinc-400 text-xs mb-1 block">المنتج</label>
                     <div className="flex gap-2">
                       <button onClick={() => setCreateType('superstar')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'superstar' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Cpu className="w-4 h-4 inline mr-1" />سبوفر</button>
-                      <button onClick={() => setCreateType('fortnite-hack')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite-hack' ? 'bg-red-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Crosshair className="w-4 h-4 inline mr-1" />هاك فورت</button>
+                      <button onClick={() => setCreateType('fortnite')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${createType === 'fortnite' ? 'bg-purple-600 text-white' : 'bg-white/5 text-zinc-400 border border-white/10'}`}><Crosshair className="w-4 h-4 inline mr-1" />هاك فورت</button>
                     </div>
                   </div>
                   <div>
@@ -2806,7 +2806,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                 <button onClick={() => setActiveTab('keys')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'keys' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><Key className="w-4 h-4" /> المفاتيح ({stats.totalKeys})</span>
                 </button>
-                <button onClick={() => setActiveTab('banned')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'banned' ? 'bg-red-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
+                <button onClick={() => setActiveTab('banned')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'banned' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
                   <span className="flex items-center gap-2"><ShieldOff className="w-4 h-4" /> المحظورين ({stats.bannedCount})</span>
                 </button>
                 <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'admins' ? 'bg-purple-600 text-white shadow-lg' : 'bg-white/5 text-zinc-400 hover:bg-white/10 border border-white/10'}`}>
@@ -3801,6 +3801,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
