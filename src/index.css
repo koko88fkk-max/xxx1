@@ -12,7 +12,7 @@ html {
 body {
   background-color: #030305;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.05), transparent 40%),
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05), transparent 40%),
     radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.05), transparent 40%);
   background-attachment: fixed;
   color: #e4e4e7;
@@ -52,20 +52,20 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   border-left: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(59, 130, 246, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
   transform: translateY(-4px);
 }
 
-/* Luxury Gradients */
+/* Blue Gradients (Matching Logo) */
 .text-gradient-gold {
-  background: linear-gradient(to bottom right, #FDE68A, #D4AF37, #B48608);
+  background: linear-gradient(to bottom right, #93C5FD, #3B82F6, #1D4ED8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .bg-gradient-gold {
-  background: linear-gradient(135deg, #D4AF37 0%, #B48608 100%);
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
 }
 
 /* ☀️ Light Mode */

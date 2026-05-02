@@ -211,7 +211,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
                       {activatedProducts.includes('superstar') && (
                         <button 
                           onClick={onSuperstarClick}
-                          className="w-full text-right px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
+                          className="w-full text-right px-4 py-3 text-sm text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors flex items-center gap-2 font-bold"
                         >
                           <Cpu className="w-4 h-4" />
                           شرح السبوفر
@@ -243,17 +243,17 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8, x: -20 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
-                className="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)] ml-2"
+                className="hidden md:flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.2)] ml-2"
               >
                 <div className="relative flex items-center justify-center w-6 h-6 animate-pulse drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]">
                   <img 
                     src={LOGO_URL} 
                     alt="نجمة المتجر" 
-                    className="w-full h-full object-cover bg-amber-500/10"
+                    className="w-full h-full object-cover bg-blue-600/10"
                     style={{ clipPath: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)" }} 
                   />
                 </div>
-                <span className="text-yellow-400 font-bold text-sm tracking-wide">عميل مميز</span>
+                <span className="text-blue-400 font-bold text-sm tracking-wide">عميل مميز</span>
               </motion.div>
             )}
 
@@ -480,7 +480,7 @@ function Navbar({ isVerified, user, onLogin, onLogout, authLoading, onSuperstarC
                   {activatedProducts.includes('superstar') && (
                     <button 
                       onClick={() => { setMobileMenuOpen(false); onSuperstarClick?.(); }}
-                      className="text-yellow-400 font-bold flex items-center justify-center gap-2 bg-yellow-500/10 px-6 py-3 rounded-2xl border border-yellow-500/20 w-full hover:bg-yellow-500/20 transition-colors"
+                      className="text-blue-400 font-bold flex items-center justify-center gap-2 bg-blue-500/10 px-6 py-3 rounded-2xl border border-blue-500/20 w-full hover:bg-blue-500/20 transition-colors"
                     >
                       <Cpu className="w-5 h-5" />
                       شرح السبوفر (سوبر ستار)
@@ -521,7 +521,7 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
             opacity: [0.08, 0.15, 0.08]
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-amber-500/30 blur-[120px] rounded-full mix-blend-screen" 
+          className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-500/30 blur-[120px] rounded-full mix-blend-screen" 
         />
         <motion.div 
           animate={{ 
@@ -545,8 +545,8 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             className="relative mb-8"
           >
-            <div className="absolute inset-0 bg-yellow-500/20 blur-[60px] rounded-full" />
-            <div className="relative z-10 p-2 rounded-3xl bg-white/5 border border-yellow-500/20 shadow-[0_20px_50px_rgba(212,175,55,0.15)] backdrop-blur-md">
+            <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full" />
+            <div className="relative z-10 p-2 rounded-3xl bg-white/5 border border-blue-500/20 shadow-[0_20px_50px_rgba(59,130,246,0.15)] backdrop-blur-md">
               <img src={LOGO_URL} alt="تعن T3N" className="w-40 h-40 md:w-48 md:h-48 object-contain rounded-2xl" />
             </div>
           </motion.div>
@@ -567,19 +567,19 @@ function Hero({ onSiteGuideClick, onFortniteClick }: { onSiteGuideClick: () => v
               className="px-8 py-4 glass-panel text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all w-full relative overflow-hidden group border-white/20"
             >
               <div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <Hash className="w-5 h-5 text-yellow-400 relative z-10" />
+              <Hash className="w-5 h-5 text-blue-400 relative z-10" />
               <span className="relative z-10 tracking-wide">بوابة الاستلام</span>
             </motion.button>
             
             {/* Store and Discord Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 w-full">
               <motion.a 
-                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(212,175,55,0.4)" }}
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(59,130,246,0.4)" }}
                 whileTap={{ scale: 0.95 }}
                 href={STORE_URL} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-8 py-4 bg-gradient-gold text-black font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(212,175,55,0.2)] transition-all w-full sm:flex-1 relative overflow-hidden group"
+                className="px-8 py-4 bg-gradient-gold text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(59,130,246,0.2)] transition-all w-full sm:flex-1 relative overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out rounded-2xl" />
                 <ShoppingBag className="w-5 h-5 relative z-10" />
@@ -778,7 +778,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-[85rem] mx-auto w-full">
           {/* Right Side: Form (Order 2 on mobile, 1 on Desktop RTL) */}
           <TiltCard className="glass-panel-hover glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden h-full order-2 lg:order-1 min-h-[500px]">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-yellow-500/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
 
             <div className="flex flex-col items-center justify-start h-full min-h-[300px] pt-4">
 
@@ -792,8 +792,8 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                   onSubmit={handleVerify}
                   className="flex flex-col items-center w-full mx-auto relative z-10 p-4"
                 >
-                  <div className="w-16 h-16 bg-gradient-gold rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(212,175,55,0.4)]">
-                    <Key className="w-8 h-8 text-black" />
+                  <div className="w-16 h-16 bg-gradient-gold rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(59,130,246,0.4)]">
+                    <Key className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-3xl font-bold mb-4 text-white drop-shadow-md text-center">تفعيل المفتاح</h3>
                   <p className="text-zinc-400 mb-8 text-center text-lg leading-relaxed max-w-sm">
@@ -806,10 +806,10 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                       type="button"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(212,175,55,0.2)" }}
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(59,130,246,0.2)" }}
                       whileTap={{ scale: 0.98 }}
                       onClick={onLogin}
-                      className="w-full mb-5 bg-white/5 border border-yellow-500/30 rounded-2xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
+                      className="w-full mb-5 bg-white/5 border border-blue-500/30 rounded-2xl px-6 py-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
                     >
                       <svg className="w-6 h-6 bg-white rounded-full p-[2px] shrink-0" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -838,7 +838,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                         if (status === 'error') setStatus('idle');
                       }}
                       placeholder="T3N-XXXXXX-XXXXXX"
-                      className="w-full bg-black/60 border border-yellow-500/30 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
+                      className="w-full bg-black/60 border border-blue-500/30 rounded-2xl px-6 py-5 text-center text-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all text-white placeholder:text-zinc-600 shadow-inner font-mono tracking-wider"
                       dir="ltr"
                     />
                   </div>
@@ -859,7 +859,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={!orderInput.trim() || !user}
-                    className="w-full bg-gradient-gold text-black font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(212,175,55,0.2)] border-t border-yellow-200/30 mt-2"
+                    className="w-full bg-gradient-gold text-white font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(59,130,246,0.2)] border-t border-blue-200/30 mt-2"
                   >
                     <Key className="w-6 h-6" />
                     تفعيل المفتاح
@@ -905,11 +905,11 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                     {(activatedProducts?.includes('superstar') || lastActivatedType === 'superstar' || activatedProducts?.includes('spoofer') || lastActivatedType === 'spoofer') && (
                       <motion.div 
                         whileHover={{ y: -2 }}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-yellow-500/30 transition-colors"
+                        className="bg-black/40 border border-white/10 rounded-2xl p-5 flex flex-col items-center shadow-lg hover:border-blue-500/30 transition-colors"
                       >
                         <div className="flex items-center gap-4 mb-4 w-full">
-                          <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center border border-yellow-500/20 shrink-0">
-                            <Cpu className="w-6 h-6 text-yellow-400" />
+                          <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+                            <Cpu className="w-6 h-6 text-blue-400" />
                           </div>
                           <div className="text-right flex-1">
                             <h4 className="font-bold text-lg text-white">السبوفر</h4>
@@ -920,7 +920,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
                           onClick={onSuperstarClick}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-full bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-yellow-500/20"
+                          className="w-full bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-blue-500/20"
                         >
                           <MonitorPlay className="w-5 h-5" />
                           الانتقال إلى الشرح والملفات
@@ -1050,7 +1050,7 @@ function Products() {
 
   return (
     <section id="products" className="py-20 md:py-32 relative z-10">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-900/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent pointer-events-none" />
       <div className="container mx-auto px-4 relative z-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -1058,8 +1058,8 @@ function Products() {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-500/20 bg-yellow-500/5 mb-6 backdrop-blur-sm">
-            <span className="text-yellow-500/80 text-sm font-bold tracking-widest uppercase">CATALOGUE</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/20 bg-blue-500/5 mb-6 backdrop-blur-sm">
+            <span className="text-blue-500/80 text-sm font-bold tracking-widest uppercase">CATALOGUE</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-bold mb-6 text-transparent bg-clip-text text-gradient-gold drop-shadow-lg">منتجاتنا الحصرية</h2>
           <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto">تشكيلة مختارة من أفضل المنتجات الرقمية المصممة لتعطيك الأفضلية</p>
@@ -1082,18 +1082,18 @@ function Products() {
                     alt={product.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-90"
                   />
-                  <div className="absolute top-5 right-5 z-20 bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                  <div className="absolute top-5 right-5 z-20 bg-blue-500/20 backdrop-blur-md border border-blue-500/30 px-4 py-1.5 rounded-full text-xs font-bold text-blue-400 flex items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                     {product.icon}
                     {product.tag}
                   </div>
                 </div>
                 <div className="p-8 relative z-20 -mt-8 bg-gradient-to-t from-black to-transparent">
-                  <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors drop-shadow-md">{product.title}</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-white group-hover:text-blue-400 transition-colors drop-shadow-md">{product.title}</h3>
                   <p className="text-zinc-400 mb-8 leading-relaxed line-clamp-2">{product.desc}</p>
                   <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                     <button 
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedProduct(product); }}
-                      className="text-sm font-bold text-yellow-300 flex items-center justify-center gap-2 bg-yellow-500/10 px-5 py-3 rounded-xl hover:bg-yellow-500/20 border border-yellow-500/30 transition-colors w-full sm:w-auto flex-1 cursor-pointer"
+                      className="text-sm font-bold text-blue-300 flex items-center justify-center gap-2 bg-blue-500/10 px-5 py-3 rounded-xl hover:bg-blue-500/20 border border-blue-500/30 transition-colors w-full sm:w-auto flex-1 cursor-pointer"
                     >
                       تفاصيل المنتج
                     </button>
@@ -1102,7 +1102,7 @@ function Products() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-sm font-bold text-black flex flex-row-reverse items-center justify-center gap-2 bg-gradient-gold px-5 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all w-full sm:w-auto flex-1 z-30"
+                      className="text-sm font-bold text-white flex flex-row-reverse items-center justify-center gap-2 bg-gradient-gold px-5 py-3 rounded-xl hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all w-full sm:w-auto flex-1 z-30"
                     >
                       شراء الآن <ExternalLink className="w-4 h-4" />
                     </a>
@@ -1252,7 +1252,7 @@ function Reviews() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-[#06060c]/60 to-black/90 z-10" />
           
           <div className="relative z-20 flex flex-col items-center justify-center p-16 md:p-32 text-center h-[400px]">
-            <Star className="w-16 h-16 text-yellow-500 fill-yellow-500 mb-6 drop-shadow-[0_0_20px_rgba(234,179,8,0.5)]" />
+            <Star className="w-16 h-16 text-blue-500 fill-blue-500 mb-6 drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
             <h3 className="text-3xl md:text-5xl font-bold text-white mb-8 drop-shadow-lg">مئات التقييمات الإيجابية</h3>
             <button 
               onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}
@@ -1288,7 +1288,7 @@ function Reviews() {
                   </button>
                   
                   <div className="flex flex-col items-center mb-10">
-                    <Star className="w-12 h-12 text-yellow-500 fill-yellow-500 mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
+                    <Star className="w-12 h-12 text-blue-500 fill-blue-500 mb-4 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
                     <h3 className="text-3xl md:text-4xl font-bold text-center text-white drop-shadow-md">تقييمات عملائنا</h3>
                   </div>
                   
@@ -1703,12 +1703,12 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
         <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }} className="mb-8">
           <div className="rounded-2xl p-6 md:p-8 bg-[#0a1a5c]/60 backdrop-blur-lg border border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.1)]">
             <div className="flex gap-5 items-start mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center shrink-0 border border-yellow-500/20">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20">
                 <FileArchive className="w-7 h-7" />
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2 text-white">ثم تروح لملف discord.gg t3n</h3>
-                <p className="text-blue-200/60 leading-relaxed text-lg">تدخل على مجلد <span className="text-white font-bold">كلين</span> ثم تشغل ملف <span className="text-yellow-400 font-bold">UpdatedApple.exe</span> — مهم تسويه قبل السبوفر!</p>
+                <p className="text-blue-200/60 leading-relaxed text-lg">تدخل على مجلد <span className="text-white font-bold">كلين</span> ثم تشغل ملف <span className="text-blue-400 font-bold">UpdatedApple.exe</span> — مهم تسويه قبل السبوفر!</p>
               </div>
             </div>
             
@@ -1830,7 +1830,7 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
 
         {/* ===== Reviews Section ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="mb-6">
-          <div className="rounded-2xl p-6 md:p-8 bg-[#0a1a5c]/60 backdrop-blur-lg border border-yellow-500/20 shadow-[0_0_25px_rgba(234,179,8,0.1)] text-center">
+          <div className="rounded-2xl p-6 md:p-8 bg-[#0a1a5c]/60 backdrop-blur-lg border border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.1)] text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               {[...Array(5)].map((_, i) => (
                 <motion.div
@@ -2202,7 +2202,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             {/* USB Format Warning */}
             <div className="w-full max-w-4xl mt-8 bg-red-950/40 border border-red-500/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm shadow-[0_0_20px_rgba(239,68,68,0.1)]">
               <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="w-8 h-8 text-yellow-500 shrink-0" />
+                <AlertTriangle className="w-8 h-8 text-red-500 shrink-0" />
                 <h4 className="text-2xl font-bold text-red-400">تنبيه هام جداً! ⚠️</h4>
               </div>
               
@@ -2476,7 +2476,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
     if (k.status === 'banned') return { text: 'محظور', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: '🚫' };
     if (k.status === 'frozen') return { text: 'مُجمّد', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: '❄️' };
     if (k.status === 'active') return { text: 'مُفعّل', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: '✅' };
-    if (k.status === 'unused') return { text: 'غير مستخدم', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', icon: '🔑' };
+    if (k.status === 'unused') return { text: 'غير مستخدم', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: '🔑' };
     return { text: 'غير معروف', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30', icon: '❓' };
   };
 
@@ -2582,7 +2582,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                 <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">فورت نايت</p><p className="text-xl font-bold text-purple-400">{keys.filter(k => k.productType === 'fortnite').length}</p></div>
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">هاك فورت</p><p className="text-xl font-bold text-red-400">{keys.filter(k => k.productType === 'fortnite-hack').length}</p></div>
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">مُفعّل</p><p className="text-xl font-bold text-emerald-400">{keys.filter(k => k.status === 'active').length}</p></div>
-                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">غير مستخدم</p><p className="text-xl font-bold text-yellow-400">{keys.filter(k => k.status === 'unused').length}</p></div>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-center"><p className="text-zinc-400 text-xs mb-1">غير مستخدم</p><p className="text-xl font-bold text-blue-400">{keys.filter(k => k.status === 'unused').length}</p></div>
               </div>
 
               {/* Tabs */}
@@ -2619,7 +2619,7 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                               {k.usedByEmail && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {k.usedByEmail}</span>}
                               {k.usedByName && <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {k.usedByName}</span>}
                               {k.activatedAt && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(k.activatedAt).toLocaleString('ar-SA')}</span>}
-                              {!k.usedByUid && <span className="text-yellow-500">🔑 لم يُستخدم بعد</span>}
+                              {!k.usedByUid && <span className="text-blue-500">🔑 لم يُستخدم بعد</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -2759,9 +2759,9 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                   </div>
                   <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-yellow-600/20 to-amber-800/10 border border-yellow-500/20 rounded-2xl p-5">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-yellow-600/20 to-amber-800/10 border border-blue-500/20 rounded-2xl p-5">
                   <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-5 h-5 text-yellow-400" />
+                    <Star className="w-5 h-5 text-blue-400" />
                     <span className="text-zinc-400 text-xs">VIP</span>
                   </div>
                   <p className="text-3xl font-bold text-white">{stats.vipUsers}</p>
@@ -2838,7 +2838,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                               {u.banned ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">🚫 محظور</span>
                               ) : u.isVIP ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"><Star className="w-3 h-3" /> VIP</span>
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30"><Star className="w-3 h-3" /> VIP</span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-zinc-500/20 text-zinc-400 border border-zinc-500/30">عادي</span>
                               )}
@@ -2849,7 +2849,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
                                 {u.isVIP && !u.banned && (
-                                  <button onClick={() => handleRemoveVIP(u.id)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-all text-xs" title="إزالة VIP">
+                                  <button onClick={() => handleRemoveVIP(u.id)} disabled={actionLoading === u.id} className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all text-xs" title="إزالة VIP">
                                     <UserX className="w-4 h-4" />
                                   </button>
                                 )}
@@ -3120,7 +3120,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                           <tr key={a.email} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
                             <td className="px-4 py-3"><span className="text-white text-sm">{a.email}</span></td>
                             <td className="px-4 py-3">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${a.role === 'مالك' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}`}>
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${a.role === 'مالك' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}`}>
                                 <Crown className="w-3 h-3" /> {a.role}
                               </span>
                             </td>
@@ -3661,7 +3661,7 @@ export default function App() {
         onClick={() => setDarkMode(!darkMode)}
         className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all shadow-[0_8px_25px_rgba(0,0,0,0.3)]"
       >
-        {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-blue-400" />}
+        {darkMode ? <Sun className="w-5 h-5 text-blue-400" /> : <Moon className="w-5 h-5 text-blue-400" />}
       </motion.button>
 
       <Navbar 
@@ -3718,7 +3718,7 @@ export default function App() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setShowKeyManager(true)}
-          className="fixed bottom-20 right-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(245,158,11,0.4)] border border-amber-400/30 hover:shadow-[0_8px_35px_rgba(245,158,11,0.6)] transition-shadow"
+          className="fixed bottom-20 right-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-[0_8px_25px_rgba(59,130,246,0.4)] border border-blue-400/30 hover:shadow-[0_8px_35px_rgba(59,130,246,0.6)] transition-shadow"
         >
           <Hash className="w-5 h-5" />
         </motion.button>
