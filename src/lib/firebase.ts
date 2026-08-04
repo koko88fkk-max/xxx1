@@ -240,7 +240,7 @@ export function isValidKeyFormat(value: string): boolean {
   return /^T3N-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}$/.test(value.trim());
 }
 
-export async function createKeys(count: number, productType: 'fortnite' | 'superstar' | 'fortnite-hack'): Promise<string[]> {
+export async function createKeys(count: number, productType: 'fortnite' | 'superstar' | 'fortnite-hack' | 'site_access'): Promise<string[]> {
   const created: string[] = [];
   const now = new Date().toISOString();
   for (let i = 0; i < Math.min(count, 100); i++) {
@@ -258,6 +258,34 @@ export async function createKeys(count: number, productType: 'fortnite' | 'super
     created.push(keyId);
   }
   return created;
+}
+
+export async function consumeSiteAccessKey(keyId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const keyRef = doc(db, "keys", keyId);
+    const keySnap = await getDoc(keyRef);
+    if (!keySnap.exists()) return { success: false, error: 'المفتاح غير موجود' };
+    
+    const keyData = keySnap.data();
+    if (keyData.productType !== 'site_access') return { success: false, error: 'هذا المفتاح غير صالح لدخول الموقع' };
+    if (keyData.status === 'banned') return { success: false, error: 'هذا المفتاح محظور' };
+    if (keyData.status === 'frozen') return { success: false, error: 'هذا المفتاح مجمد مؤقتاً' };
+    if (keyData.status === 'used') return { success: false, error: 'هذا المفتاح مستخدم مسبقاً ولا يمكن استخدامه مرة أخرى' };
+    
+    await setDoc(keyRef, {
+      ...keyData,
+      status: 'used',
+      activatedAt: new Date().toISOString(),
+      usedByUid: 'anonymous',
+      usedByEmail: 'visitor',
+      usedByName: 'زائر',
+    });
+    
+    return { success: true };
+  } catch (err: any) {
+    console.error('consumeSiteAccessKey error:', err);
+    return { success: false, error: err.message || 'حدث خطأ أثناء تفعيل المفتاح' };
+  }
 }
 
 export async function activateKey(keyId: string, uid: string, email: string, userData?: { displayName?: string; photoURL?: string; provider?: string }): Promise<{ success: boolean; error?: string; productType?: string; activatedProducts?: string[] }> {
