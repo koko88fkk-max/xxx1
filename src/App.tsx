@@ -4,8 +4,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from
 import { ShoppingBag, MessageCircle, ShieldAlert, Download, CheckCircle2, Star, ExternalLink, Server, FileArchive, AlertCircle, AlertTriangle, ChevronDown, HelpCircle, ChevronUp, Gamepad2, Shield, Cpu, Wrench, X, LogIn, LogOut, MonitorPlay, Maximize2, Youtube, Copy, Check, Sun, Moon, LayoutDashboard, Users, Package, Clock, RefreshCw, Mail, Hash, Trash2, UserX, ShieldOff, Crown, UserPlus, Key, Plus, Ban, Snowflake, Play, Search, Bell, List, Crosshair } from 'lucide-react';
 import { auth, loginWithDiscord, logout, checkUserVIP, activateKey, consumeSiteAccessKey, isAdmin, getAdminStats, banUser, unbanUser, removeVIP, deleteUserData, addAdminUser, removeAdminUser, checkIsAdmin, checkBanned, getAllKeys, deleteKey, deleteAllKeys, banKey, unbanKey, freezeKey, unfreezeKey, isValidKeyFormat, trackSiteVisit, checkKeyStatus, createKeys, listenToNotifications, deleteNotification, listenToMaintenanceMode, toggleMaintenanceMode } from './lib/firebase';
 import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
-import LoginModal from './LoginModal';
-
+import { onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
 const LOGO_URL = "/logo.png";
 const STORE_URL = "https://salla.sa/t3nn";
 const DISCORD_URL = "https://discord.gg/tjMWEccj3J";
@@ -2463,8 +2462,8 @@ function KeyManagement({ onClose }: { onClose: () => void }) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-zinc-400 text-xs mb-1 block">العدد (1-100)</label>
-                    <input type="number" min={1} max={100} value={createCount} onChange={(e) => setCreateCount(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-center font-mono focus:outline-none focus:border-emerald-500/50" />
+                    <label className="text-zinc-400 text-xs mb-1 block">العدد (1-50)</label>
+                    <input type="number" min={1} max={50} value={createCount} onChange={(e) => setCreateCount(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-center font-mono focus:outline-none focus:border-emerald-500/50" />
                   </div>
                   <button onClick={handleCreateKeys} disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2">
                     {isCreating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Plus className="w-5 h-5" /> إنشاء {createCount} مفتاح</>}
@@ -3263,12 +3262,22 @@ function SiteAccessModal({ onSuccess, onAdminLogin }: { onSuccess: () => void; o
     setLoading(true);
     setError('');
     
+    // Admin Master Key Check
+    if (keyInput.trim() === 'MAXbdr1420@@') {
+      localStorage.setItem('t3n_admin', 'true');
+      localStorage.setItem('t3n_site_access', 'true');
+      onAdminLogin();
+      onSuccess();
+      setLoading(false);
+      return;
+    }
+
     const result = await consumeSiteAccessKey(keyInput.trim());
     if (result.success) {
       localStorage.setItem('t3n_site_access', 'true');
       onSuccess();
     } else {
-      setError(result.error || 'المفتاح غير صحيح');
+      setError(result.error || 'المفتاح مستخدم مسبقاً ولا يمكن استخدامه مرة أخرى أو أنه غير صحيح');
     }
     setLoading(false);
   };
@@ -3286,10 +3295,7 @@ function SiteAccessModal({ onSuccess, onAdminLogin }: { onSuccess: () => void; o
             <Key className="w-10 h-10 text-blue-400" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">تسجيل الدخول</h2>
-          <p 
-            className="text-zinc-400 text-sm cursor-default"
-            onDoubleClick={onAdminLogin}
-          >
+          <p className="text-zinc-400 text-sm">
             يرجى إدخال المفتاح الخاص بك للوصول إلى الموقع
           </p>
         </div>
@@ -3326,257 +3332,42 @@ function SiteAccessModal({ onSuccess, onAdminLogin }: { onSuccess: () => void; o
 }
 
 export default function App() {
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [isVerifiedCustomer, setIsVerifiedCustomer] = useState(false);
-  const [activatedProducts, setActivatedProducts] = useState<string[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [showSuperstarGuide, setShowSuperstarGuide] = useState(false);
-  const [showFortniteGuide, setShowFortniteGuide] = useState(false);
-  const [showFortniteHackGuide, setShowFortniteHackGuide] = useState(false);
-  const [showSiteGuide, setShowSiteGuide] = useState(false);
-  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [showKeyManager, setShowKeyManager] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isBanned, setIsBanned] = useState(false);
-  const [banReason, setBanReason] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('t3n-theme');
-    return saved ? saved === 'dark' : true;
-  });
-
+  const [isAdminUser, setIsAdminUser] = useState(() => localStorage.getItem('t3n_admin') === 'true');
   const [appLoading, setAppLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [hasSiteAccess, setHasSiteAccess] = useState(() => localStorage.getItem('t3n_site_access') === 'true');
 
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-
   useEffect(() => {
-    const unsub = listenToNotifications((notifs) => {
-      setNotifications(notifs);
-      const lastReadId = localStorage.getItem('t3n_last_read_notif');
-      if (!lastReadId) {
-        setUnreadCount(notifs.length);
-      } else {
-        const lastReadIndex = notifs.findIndex(n => n.id === lastReadId);
-        if (lastReadIndex === -1) {
-          setUnreadCount(notifs.length);
-        } else {
-          setUnreadCount(lastReadIndex);
-        }
-      }
-    });
-
     const unsubMaintenance = listenToMaintenanceMode((mode) => {
       setIsMaintenance(mode);
     });
 
     return () => {
-      unsub();
       unsubMaintenance();
     };
   }, []);
 
-  const handleReadNotifications = () => {
-    if (notifications.length > 0) {
-      localStorage.setItem('t3n_last_read_notif', notifications[0].id);
-      setUnreadCount(0);
-    }
-  };
-
   useEffect(() => {
-    // Scroll to top listener
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
-    
-    // Initial loading screen timeout
     const timer = setTimeout(() => setAppLoading(false), 2000);
-
-    // 📈 Track site visit
     trackSiteVisit();
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(timer);
     };
   }, []);
 
-  // Apply theme
-  useEffect(() => {
-    document.documentElement.classList.toggle('light-mode', !darkMode);
-    localStorage.setItem('t3n-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
 
-  // Auto-hide toast after 5 seconds
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  // Parse Custom Token returned from Discord API Backend
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const customToken = params.get('token');
-    if (customToken) {
-      setAuthLoading(true);
-      signInWithCustomToken(auth, customToken).then(() => {
-        window.history.replaceState(null, '', window.location.pathname);
-      }).catch(err => {
-        console.error("Custom token login error:", err);
-      }).finally(() => {
-        setAuthLoading(false);
-      });
-    }
-  }, []);
-
-  // Sync auth and handle Discord role assignment once verified
-  useEffect(() => {
-    // Check local device ban first
-    const localBan = localStorage.getItem('t3n_device_banned');
-    if (localBan) {
-      setIsBanned(true);
-      setBanReason(localStorage.getItem('t3n_ban_reason') || 'تم حظر جهازك لانتهاك شروط الاستخدام.');
-      setAuthLoading(false);
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-
-      // If locally banned, prevent any auth actions
-      if (localStorage.getItem('t3n_device_banned')) {
-        setAuthLoading(false);
-        return;
-      }
-
-      if (currentUser) {
-        const banCheck = await checkBanned(currentUser.uid);
-        if (banCheck.banned) {
-          setIsBanned(true);
-          setBanReason(banCheck.reason || null);
-          localStorage.setItem('t3n_device_banned', 'true');
-          if (banCheck.reason) localStorage.setItem('t3n_ban_reason', banCheck.reason);
-          setAuthLoading(false);
-          return;
-        } else {
-          setIsBanned(false);
-          setBanReason(null);
-        }
-
-        const vipResult = await checkUserVIP(currentUser.uid);
-        setIsVerifiedCustomer(vipResult.isVIP);
-
-        if (vipResult.isVIP) {
-          if (vipResult.products && Array.isArray(vipResult.products)) {
-            setActivatedProducts(vipResult.products);
-          }
-        }
-
-        const isAdm = await checkIsAdmin(currentUser.email);
-        setIsAdminUser(isAdm);
-
-        // Process pending Discord OAuth token
-        const pendingToken = localStorage.getItem('discord_token_pending');
-        if (pendingToken) {
-          if (!isVIP) {
-            // User has a token but is not VIP yet - keep the token for later
-            // Don't remove it - they might activate a key soon
-            console.log('Discord token pending but user is not VIP yet. Token will be processed after key activation.');
-          } else {
-            // User is VIP, process the Discord token
-            try {
-              console.log('Processing Discord token...');
-              const discordRes = await fetch('https://discord.com/api/users/@me', {
-                headers: { Authorization: `Bearer ${pendingToken}` }
-              });
-              
-              if (!discordRes.ok) {
-                console.error('Discord API error:', discordRes.status);
-                setToast({ type: 'error', message: 'توكن الديسكورد منتهي، يرجى إعادة ربط الحساب' });
-                localStorage.removeItem('discord_token_pending');
-              } else {
-                const discordUser = await discordRes.json();
-                
-                if (discordUser && discordUser.id) {
-                  console.log('Got Discord user:', discordUser.id);
-                  const idToken = await currentUser.getIdToken(true);
-                  const backendRes = await fetch('/api/assign-role', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ discordId: discordUser.id, accessToken: pendingToken, idToken: idToken })
-                  });
-                  
-                  if (backendRes.ok) {
-                    const result = await backendRes.json();
-                    if (result.success) {
-                      setToast({ type: 'success', message: 'تم ربط حسابك بالديسكورد وإعطائك رتبة Customer بنجاح! 🎉' });
-                    } else {
-                      setToast({ type: 'error', message: 'حدث خطأ أثناء إعطائك الرتبة، قد تكون موجودة مسبقاً' });
-                    }
-                  } else {
-                    const errData = await backendRes.json().catch(() => ({}));
-                    console.error('Backend error:', backendRes.status, errData);
-                    if (backendRes.status === 429) {
-                      setToast({ type: 'error', message: errData.error || 'طلبات كثيرة، يرجى المحاولة بعد 30 ثانية' });
-                    } else {
-                      setToast({ type: 'error', message: errData.error || 'فشل في الاتصال بسيرفر الرتب. يرجى المحاولة لاحقاً' });
-                    }
-                  }
-                } else {
-                  console.error('Invalid Discord user data');
-                  setToast({ type: 'error', message: 'فشل في جلب بيانات حساب الديسكورد' });
-                }
-                localStorage.removeItem('discord_token_pending');
-              }
-            } catch (e) {
-              console.error('Error assigning rank:', e);
-              setToast({ type: 'error', message: 'فشل ربط الديسكورد، يرجى المحاولة لاحقاً' });
-              localStorage.removeItem('discord_token_pending');
-            }
-          }
-        }
-      } else {
-        setIsVerifiedCustomer(false);
-        setIsAdminUser(false);
-      }
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, [isVerifiedCustomer]);
-
-  if (isBanned) {
-    return (
-      <div className="min-h-screen bg-[#06060c] flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl backdrop-blur-md">
-          <ShieldOff className="w-20 h-20 text-red-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
-          <h1 className="text-3xl font-extrabold text-white mb-3">تم حظر حسابك</h1>
-          <p className="text-zinc-300 text-lg mb-8 leading-relaxed">
-            {banReason || 'لقد تم حظرك من استخدام خدمات الموقع لمخالفتك الشروط والقوانين.'}
-          </p>
-          <div className="w-full py-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 font-bold shadow-lg flex items-center justify-center gap-2">
-            تم تقييد الوصول نهائياً
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // Maintenance screen disabled by request - allow all users to access the store
-  // if (isMaintenance && !isAdminUser && !authLoading) {
-  //   return <MaintenanceScreen />;
-  // }
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#06060c] text-zinc-200 font-sans selection:bg-blue-500/30 overflow-hidden">
-      {!hasSiteAccess && !isAdminUser && !showLoginModal && !appLoading && (
+      {!hasSiteAccess && !isAdminUser && !appLoading && (
         <SiteAccessModal 
           onSuccess={() => setHasSiteAccess(true)} 
-          onAdminLogin={() => setShowLoginModal(true)}
+          onAdminLogin={() => setIsAdminUser(true)}
         />
       )}
       {/* 🚀 Initial Loading Screen */}
@@ -3733,7 +3524,7 @@ export default function App() {
       <main>
         <Hero onTroubleshootClick={() => setShowTroubleshoot(true)} onSuperstarClick={() => setShowSuperstarGuide(true)} />
       </main>
-      <Footer onAdminLogin={() => setShowLoginModal(true)} />
+      <Footer />
 
       {/* Superstar Guide Page - VIP Only */}
       <AnimatePresence>
@@ -3767,7 +3558,6 @@ export default function App() {
         {showKeyManager && user && isAdminUser && <KeyManagement onClose={() => setShowKeyManager(false)} />}
       </AnimatePresence>
 
-      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
