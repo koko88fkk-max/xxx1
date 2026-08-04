@@ -3332,7 +3332,22 @@ function SiteAccessModal({ onSuccess, onAdminLogin }: { onSuccess: () => void; o
 }
 
 export default function App() {
+  const [showSuperstarGuide, setShowSuperstarGuide] = useState(false);
+  const [showFortniteGuide, setShowFortniteGuide] = useState(false);
+  const [showFortniteHackGuide, setShowFortniteHackGuide] = useState(false);
+  const [showSiteGuide, setShowSiteGuide] = useState(false);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [showKeyManager, setShowKeyManager] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('t3n-theme');
+    return saved ? saved === 'dark' : true;
+  });
+
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(() => localStorage.getItem('t3n_admin') === 'true');
   const [appLoading, setAppLoading] = useState(true);
@@ -3359,6 +3374,20 @@ export default function App() {
       clearTimeout(timer);
     };
   }, []);
+
+  // Apply theme
+  useEffect(() => {
+    document.documentElement.classList.toggle('light-mode', !darkMode);
+    localStorage.setItem('t3n-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  // Auto-hide toast after 5 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
 
 
@@ -3480,7 +3509,7 @@ export default function App() {
 
 
       {/* Admin Button - Only visible to admin */}
-      {user && isAdminUser && (
+      {isAdminUser && (
         <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-4">
           <motion.button
             initial={{ opacity: 0, scale: 0 }}
@@ -3509,7 +3538,7 @@ export default function App() {
       )}
 
       {/* 📦 Order Management Button - Only visible to admin, right side */}
-      {user && isAdminUser && (
+      {isAdminUser && (
         <motion.button
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -3550,12 +3579,12 @@ export default function App() {
 
       {/* 🔒 Admin Dashboard - Only for admin */}
       <AnimatePresence>
-        {showAdmin && user && isAdminUser && <AdminDashboard onClose={() => setShowAdmin(false)} />}
+        {showAdmin && isAdminUser && <AdminDashboard onClose={() => setShowAdmin(false)} />}
       </AnimatePresence>
 
       {/* 🔑 Key Manager - Only for admin */}
       <AnimatePresence>
-        {showKeyManager && user && isAdminUser && <KeyManagement onClose={() => setShowKeyManager(false)} />}
+        {showKeyManager && isAdminUser && <KeyManagement onClose={() => setShowKeyManager(false)} />}
       </AnimatePresence>
 
     </div>
