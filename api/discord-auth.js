@@ -29,7 +29,9 @@ export default async function handler(req, res) {
   const clientSecret = process.env.DISCORD_CLIENT_SECRET;
   
   // This redirect URI must EXACTLY match Discord Developer Settings
-  const redirectUri = 'https://t3n-2a2i.vercel.app/api/discord-auth';
+  const protocol = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
+  const host = req.headers.host;
+  const redirectUri = `${protocol}://${host}/api/discord-auth`;
 
   if (!clientSecret || !admin.apps.length) {
     return res.status(500).send("Server configuration error. Set variables in Vercel.");
