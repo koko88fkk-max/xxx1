@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const BOT_TOKEN = '';
+const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || process.env.BOT_TOKEN || '';
 const GUILD_ID = '1396959491786018826';
 const ROLE_ID = '1397221350095192074';
 
