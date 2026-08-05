@@ -1,13 +1,17 @@
-node_modules
+node_modules/
+*.exe
+*.bin
+dist/
+build/
+.env
+.env.local
+*.log
 .DS_Store
-dist
 dist-ssr
 *.local
-.env
 .env.*
 !.env.example
 .vercel
-build
 /tmp
 .vscode
 .idea
@@ -17,3 +21,4 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .history
+
