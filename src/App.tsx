@@ -1654,7 +1654,7 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
               <span className="text-blue-400">👇</span> شرح UpdatedApple طريقة استعمال
             </h4>
             <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+              <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                 <source src="/video-updatedapple.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -1679,7 +1679,7 @@ function SuperstarGuide({ onClose }: { onClose: () => void }) {
               <span className="text-blue-400">👇</span> شرح السبوفر
             </h4>
             <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+              <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                 <source src="/video-spoofer.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -2022,7 +2022,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
+              <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-time.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -2063,7 +2063,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
+              <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-epic.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -2104,7 +2104,7 @@ function TroubleshootGuide({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="w-full max-w-4xl rounded-3xl overflow-hidden border-2 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.2)] bg-black backdrop-blur-sm">
-              <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
+              <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full aspect-video outline-none" preload="metadata">
                 <source src="/video-solution-network.mp4" type="video/mp4" />
                 متصفحك لا يدعم تشغيل الفيديو
               </video>
@@ -3137,7 +3137,7 @@ function FortniteHackGuide({ onClose }: { onClose: () => void }) {
                 <span className="text-blue-400">1️⃣</span> شرح هاك فورت
               </h4>
               <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] mb-6">
-                <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+                <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                   <source src="/video-fortnite-main.mp4" type="video/mp4" />
                   متصفحك لا يدعم تشغيل الفيديو
                 </video>
@@ -3169,7 +3169,7 @@ function FortniteHackGuide({ onClose }: { onClose: () => void }) {
                 <span className="text-blue-400">2️⃣</span> شرح تركيب تعريفات الهاك
               </h4>
               <div className="rounded-xl overflow-hidden border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)] mb-6">
-                <video controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
+                <video controls playsInline controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full" preload="metadata">
                   <source src="/video-fortnite-driver.mp4" type="video/mp4" />
                   متصفحك لا يدعم تشغيل الفيديو
                 </video>
