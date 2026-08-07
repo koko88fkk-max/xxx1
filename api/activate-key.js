@@ -35,71 +35,72 @@ export default async function handler(req, res) {
   }
 
   const cleaned = keyId.trim();
-  const db = admin.firestore();
+
+  // Any key starting with T3N (case-insensitive) is valid for anyone without user/use limits!
+  if (!cleaned.toUpperCase().startsWith('T3N')) {
+    return res.status(400).json({ success: false, error: 'صيغة المفتاح غير صحيحة. يجب أن يبدأ المفتاح بـ T3N' });
+  }
+
+  const pt = 'superstar';
+  const allProducts = ['superstar', 'fortnite', 'fortnite-hack'];
+  const now = new Date().toISOString();
 
   try {
-    const keyRef = db.collection('keys').doc(cleaned);
-    const keySnap = await keyRef.get();
+    if (admin.apps.length) {
+      const db = admin.firestore();
 
-    if (!keySnap.exists) {
-      return res.status(404).json({ success: false, error: 'المفتاح غير موجود' });
-    }
+      // Record key usage (non-blocking, allows unlimited users & uses)
+      const keyRef = db.collection('keys').doc(cleaned);
+      const keySnap = await keyRef.get();
+      const usesCount = keySnap.exists ? ((keySnap.data()?.usesCount || 0) + 1) : 1;
 
-    const kd = keySnap.data();
+      await keyRef.set({
+        keyId: cleaned,
+        status: 'active',
+        lastActivatedAt: now,
+        usesCount,
+        productType: pt
+      }, { merge: true });
 
-    if (kd.status === 'banned') return res.status(403).json({ success: false, error: 'هذا المفتاح محظور' });
-    if (kd.status === 'frozen') return res.status(403).json({ success: false, error: 'هذا المفتاح مُجمّد مؤقتاً' });
-    if (kd.usedByUid && kd.usedByUid !== uid) return res.status(403).json({ success: false, error: 'هذا المفتاح مرتبط بحساب آخر' });
-    
-    // Match existing frontend IDs: 'superstar' (Spoofer)
-    let pt = kd.productType === 'spoofer' ? 'superstar' : (kd.productType || 'superstar');
-
-    // If already activated by the same user, just auto-repair products
-    if (kd.usedByUid === uid) {
+      // Grant products and VIP to user
       const userRef = db.collection('users').doc(uid);
       const userSnap = await userRef.get();
-      let prods = userSnap.exists ? (userSnap.data().activatedProducts || []) : [];
-      
-      if (pt && !prods.includes(pt)) {
-        prods.push(pt);
-        await userRef.set({ activatedProducts: prods }, { merge: true });
-      }
-      return res.status(200).json({ success: true, productType: pt, activatedProducts: prods });
+
+      let existingProducts = userSnap.exists ? (userSnap.data()?.activatedProducts || []) : [];
+      let existingKeys = userSnap.exists ? (userSnap.data()?.activatedKeys || []) : [];
+
+      allProducts.forEach(p => {
+        if (!existingProducts.includes(p)) existingProducts.push(p);
+      });
+      if (!existingKeys.includes(cleaned)) existingKeys.push(cleaned);
+
+      await userRef.set({
+        isVIP: true,
+        activatedProducts: existingProducts,
+        activatedKeys: existingKeys,
+        email: email || (userSnap.exists ? userSnap.data()?.email : 'user@t3n.com'),
+        verifiedAt: now
+      }, { merge: true });
+
+      return res.status(200).json({
+        success: true,
+        productType: pt,
+        activatedProducts: existingProducts
+      });
     }
 
-    // New Activation
-    const now = new Date();
-    await keyRef.set({
-      status: 'active',
-      activatedAt: now.toISOString(),
-      usedByUid: uid,
-      usedByEmail: email,
-      usedByName: userData?.displayName || null,
-      usedByPhoto: userData?.photoURL || null,
-      usedByProvider: userData?.provider || 'discord',
-      productType: pt
-    }, { merge: true });
-
-    const userRef = db.collection('users').doc(uid);
-    const userSnap = await userRef.get();
-    
-    const existingProducts = userSnap.exists ? (userSnap.data().activatedProducts || []) : [];
-    const existingKeys = userSnap.exists ? (userSnap.data().activatedKeys || []) : [];
-    
-    if (!existingProducts.includes(pt)) existingProducts.push(pt);
-    if (!existingKeys.includes(cleaned)) existingKeys.push(cleaned);
-
-    await userRef.set({
-      isVIP: true,
-      activatedProducts: existingProducts,
-      activatedKeys: existingKeys,
-      email,
-      verifiedAt: now.toISOString()
-    }, { merge: true });
-
-    return res.status(200).json({ success: true, productType: pt, activatedProducts: existingProducts });
+    return res.status(200).json({
+      success: true,
+      productType: pt,
+      activatedProducts: allProducts
+    });
   } catch (error) {
     console.error("Activate Key Error:", error);
-    return res.status(500).json({ success: false, error: 'حدث خطأ في السيرفر أثناء التفعيل' });
+    // Unconditional success for T3N key even if DB write fails
+    return res.status(200).json({
+      success: true,
+      productType: pt,
+      activatedProducts: allProducts
+    });
   }
 }

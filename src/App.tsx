@@ -689,7 +689,7 @@ function OrderDelivery({ onVerify, user, onLogin, onSuperstarClick, onFortniteCl
     e.preventDefault();
     if (!orderInput.trim()) return;
     if (!user) { setStatus('error'); setErrorMsg('يجب تسجيل الدخول بحساب ديسكورد أو جوجل أولاً'); return; }
-    if (!isValidKeyFormat(orderInput)) { setStatus('error'); setErrorMsg('صيغة المفتاح غير صحيحة. الصيغة: T3N-XXXXXX-XXXXXX'); return; }
+    if (!isValidKeyFormat(orderInput)) { setStatus('error'); setErrorMsg('صيغة المفتاح غير صحيحة. يجب أن يبدأ المفتاح بـ T3N'); return; }
     setStatus('loading');
     try {
       const result = await activateKey(orderInput.trim(), user.uid, user.email || '', { displayName: user.displayName || undefined, photoURL: user.photoURL || undefined, provider: 'discord' });
